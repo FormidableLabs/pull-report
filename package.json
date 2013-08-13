@@ -2,13 +2,14 @@
   "name": "pull-request-notifs",
   "version": "0.0.1",
   "description": "Notifications for open pull requests",
-  "main": "index.js",
+  "main": "pr-notifs.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Ryan Roemer <ryan@loose-bits.com>",
   "license": "MIT",
   "dependencies": {
-    "github": "~0.1.10"
+    "github": "~0.1.10",
+    "commander": "~2.0.0"
   }
 }
