@@ -1,0 +1,14 @@
+{
+  "name": "pull-request-notifs",
+  "version": "0.0.1",
+  "description": "Notifications for open pull requests",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "github": "~0.1.10"
+  }
+}

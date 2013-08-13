@@ -1,0 +1,16 @@
+\.git
+\.hg
+
+\.DS_Store
+\.project
+
+*\.sublime-project
+*\.sublime-workspace
+
+node_modules
+bower_components
+
+# grunt-testem
+testem.*.json
+testem-*.tap
+libpeerconnection.log
