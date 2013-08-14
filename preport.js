@@ -56,7 +56,7 @@ function getPrs(org, callback) {
       var repos = _.chain(results.repos)
         .map(function (repo) { return [repo.name, repo]; })
         .object()
-        .value()
+        .value();
 
       async.each(results.repos, function (repo, mapCb) {
         github.pullRequests.getAll({

@@ -7,7 +7,7 @@
     "preport": "./preport.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/jshint -c .jshint.json *.js"
   },
   "author": "Ryan Roemer <ryan.roemer@formidablelabs.com>",
   "license": "MIT",
