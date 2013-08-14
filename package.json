@@ -1,10 +1,10 @@
 {
-  "name": "preport",
+  "name": "pull-request",
   "version": "0.0.1",
   "description": "Report on open GitHub pull requests for organizations and users",
-  "main": "preport.js",
+  "main": "pull-request.js",
   "bin": {
-    "preport": "./preport.js"
+    "pull-request": "./pull-request.js"
   },
   "scripts": {
     "test": "./node_modules/.bin/jshint -c .jshint.json *.js"

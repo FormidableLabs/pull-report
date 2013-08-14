@@ -1,4 +1,4 @@
-# PReport - Github Pull Request Reporter
+# Pull Request Reporter
 Create reports for open GitHub pull requests for organizations and users.
 
 ## Installation
@@ -6,7 +6,7 @@ Create reports for open GitHub pull requests for organizations and users.
 You can install with NPM:
 
 ```
-$ npm install -g preport
+$ npm install -g pull-request
 ```
 
 

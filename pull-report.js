@@ -28,18 +28,6 @@ var pkg = require("./package.json"),
 
   github;
 
-// Parse command line arguments.
-program
-  .version(pkg.version)
-  .parse(process.argv);
-
-// Set up github auth.
-var github = new GitHubApi({
-  // required
-  version: "3.0.0",
-  // optional
-  timeout: 5000
-});
 
 // Get PRs for team.
 function getPrs(org, callback) {
@@ -120,6 +108,19 @@ function getPrs(org, callback) {
 
 // Main.
 if (require.main === module) {
+  // Parse command line arguments.
+  program
+    .version(pkg.version)
+    .parse(process.argv);
+
+  // Set up github auth.
+  var github = new GitHubApi({
+    // required
+    version: "3.0.0",
+    // optional
+    timeout: 5000
+  });
+
   // Authenticate.
   github.authenticate({
     type: "basic",
@@ -141,6 +142,8 @@ if (require.main === module) {
           console.log("    * " + pr.assignee + " / " + pr.user + " - " +
             pr.number + ": " + pr.title);
         });
+
+        console.log("");
       });
 
       cb(err);
