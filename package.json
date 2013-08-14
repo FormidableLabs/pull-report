@@ -1,10 +1,10 @@
 {
-  "name": "pull-request",
+  "name": "pull-report",
   "version": "0.0.1",
   "description": "Report on open GitHub pull requests for organizations and users",
-  "main": "pull-request.js",
+  "main": "pull-report.js",
   "bin": {
-    "pull-request": "./pull-request.js"
+    "pull-report": "./pull-report.js"
   },
   "scripts": {
     "test": "./node_modules/.bin/jshint -c .jshint.json *.js"
