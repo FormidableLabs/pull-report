@@ -14,28 +14,23 @@ var pkg = require("./package.json"),
   HOME_PATH = process.env.HOME,
   GIT_CONFIG_PATH = [HOME_PATH, ".gitconfig"].join("/"),
   GIT_CONFIG = iniparser.parseSync(GIT_CONFIG_PATH),
-  ORGS = [
-    "FormidableLabs",
-    "WalmartLabs"
-  ],
-  USERS = [
-    "eastridge",
-    "ryan-roemer",
-    "alexlande",
-    "per-nilsson",
-    "rgerstenberger"
-  ],
 
   github;
 
 
-// Get PRs for team.
-function getPrs(org, callback) {
+/**
+ * Get PRs for organization.
+ *
+ * @param   {object} opts       Options.
+ * @param   {string} opts.org   Organization name
+ * @param   {string} opts.users Users to filter (or `null`).
+ */
+function getPrs(opts, callback) {
   // Actions.
   async.auto({
     repos: function (cb, results) {
       github.repos.getFromOrg({
-        org: org,
+        org: opts.org,
         per_page: 100
       }, cb);
     },
@@ -48,7 +43,7 @@ function getPrs(org, callback) {
 
       async.each(results.repos, function (repo, mapCb) {
         github.pullRequests.getAll({
-          user: org,
+          user: opts.org,
           repo: repo.name,
           state: "open",
           per_page: 100
@@ -91,8 +86,9 @@ function getPrs(org, callback) {
           })
           .filter(function (pr) {
             // Limit to assigned / requesting users.
-            return USERS.indexOf(pr.assignee) > -1 ||
-                   USERS.indexOf(pr.user) > -1;
+            return !opts.users ||
+              opts.users.indexOf(pr.assignee) > -1 ||
+              opts.users.indexOf(pr.user) > -1;
           })
           .value();
 
@@ -106,12 +102,26 @@ function getPrs(org, callback) {
   });
 }
 
+function list(val) {
+  return val.split(",");
+}
+
 // Main.
 if (require.main === module) {
   // Parse command line arguments.
   program
     .version(pkg.version)
+    .option("-o, --org <orgs>", "List of 1+ organizations", list)
+    .option("-u, --user [users]", "List of 0+ users", list)
     .parse(process.argv);
+
+  // Defaults
+  program.user || (program.user = null);
+
+  // Validation
+  if (!program.org) {
+    throw new Error("Must specify 1+ organization names");
+  }
 
   // Set up github auth.
   var github = new GitHubApi({
@@ -128,12 +138,12 @@ if (require.main === module) {
     password: GIT_CONFIG.github.password
   });
 
-  // For each team,
-  async.eachSeries(ORGS, function (team, cb) {
-    console.log("* " + team);
+  // For each org,
+  async.eachSeries(program.org, function (org, cb) {
+    console.log("* " + org);
 
     // for each repo,
-    getPrs(team, function (err, repos) {
+    getPrs({ org: org, users: program.user }, function (err, repos) {
       _.each(repos, function (repo) {
         console.log("  * " + repo.name + ": (" + repo.prs.length + ")");
 
