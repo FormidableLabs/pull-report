@@ -9,6 +9,10 @@
   "scripts": {
     "test": "./node_modules/.bin/jshint -c .jshint.json *.js"
   },
+  "keywords": [
+    "github",
+    "pull request"
+  ],
   "author": "Ryan Roemer <ryan.roemer@formidablelabs.com>",
   "license": "MIT",
   "dependencies": {
