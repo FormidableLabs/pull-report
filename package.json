@@ -1,12 +1,15 @@
 {
-  "name": "pull-request-notifs",
+  "name": "preport",
   "version": "0.0.1",
-  "description": "Notifications for open pull requests",
-  "main": "pr-notifs.js",
+  "description": "Report on open GitHub pull requests for organizations and users",
+  "main": "preport.js",
+  "bin": {
+    "preport": "./preport.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Ryan Roemer <ryan@loose-bits.com>",
+  "author": "Ryan Roemer <ryan.roemer@formidablelabs.com>",
   "license": "MIT",
   "dependencies": {
     "github": "~0.1.10",
@@ -14,5 +17,8 @@
     "iniparser": "~1.0.5",
     "async": "~0.2.9",
     "underscore": "~1.5.1"
+  },
+  "devDependencies": {
+    "jshint": "~2.1.9"
   }
 }
