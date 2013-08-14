@@ -14,9 +14,16 @@ var pkg = require("./package.json"),
   HOME_PATH = process.env.HOME,
   GIT_CONFIG_PATH = [HOME_PATH, ".gitconfig"].join("/"),
   GIT_CONFIG = iniparser.parseSync(GIT_CONFIG_PATH),
-  TEAMS = [
+  ORGS = [
     "FormidableLabs",
     "WalmartLabs"
+  ],
+  USERS = [
+    "eastridge",
+    "ryan-roemer",
+    "alexlande",
+    "per-nilsson",
+    "rgerstenberger"
   ],
 
   github;
@@ -81,10 +88,10 @@ function getPrs(org, callback) {
       .filter(function (repo) { return repo.prs && repo.prs.length; })
       .sort(function (repo) { return repo.name; })
       .map(function (repo) {
-        repos[repo.name] = _.pick(repo, "name");
+        var repoData = _.pick(repo, "name");
 
         // Iterate PRs.
-        repos[repo.name].prs = _.chain(repo.prs)
+        repoData.prs = _.chain(repo.prs)
           .sort(function (pr) { return pr.number; })
           .map(function (pr) {
             return {
@@ -94,7 +101,17 @@ function getPrs(org, callback) {
               title: pr.title
             };
           })
+          .filter(function (pr) {
+            // Limit to assigned / requesting users.
+            return USERS.indexOf(pr.assignee) > -1 ||
+                   USERS.indexOf(pr.user) > -1;
+          })
           .value();
+
+        // Add in repo if 1+ filtered PRs.
+        if (repoData.prs.length > 0) {
+          repos[repo.name] = repoData;
+        }
       });
 
     callback(null, repos);
@@ -111,7 +128,7 @@ if (require.main === module) {
   });
 
   // For each team,
-  async.eachSeries(TEAMS, function (team, cb) {
+  async.eachSeries(ORGS, function (team, cb) {
     console.log("* " + team);
 
     // for each repo,
