@@ -67,15 +67,15 @@ $ pull-report --org FormidableLabs
 Get open pull requests for multiple organizations:
 
 ```
-$ pull-report --org FormidableLabs,WalmartLabs
+$ pull-report --org FormidableLabs,ORG2
 ```
 
 Get PRs for multiple orgs, filtered to a user list:
 
 ```
 $ pull-report \
-  --org FormidableLabs,WalmartLabs \
-  --user eastridge,ryan-roemer,alexlande,per-nilsson,rgerstenberger
+  --org FormidableLabs,ORG2 \
+  --user ryan-roemer,USER2,USER3,USER4,USER5
 ```
 
 ### Limitations
