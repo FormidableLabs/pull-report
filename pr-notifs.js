@@ -31,40 +31,26 @@ var github = new GitHubApi({
   timeout: 5000
 });
 
-// Main.
-if (require.main === module) {
-  // Authenticate.
-  github.authenticate({
-    type: "basic",
-    username: GIT_CONFIG.github.user,
-    password: GIT_CONFIG.github.password
-  });
-
+// Get PRs for team.
+function getPrs(org, callback) {
   // Actions.
   async.auto({
-    org: function (cb) {
-      github.orgs.get({
-        org: TEAM,
-        per_page: 100
-      }, cb);
-    },
-
-    orgRepos: function (cb, results) {
+    repos: function (cb, results) {
       github.repos.getFromOrg({
-        org: TEAM,
+        org: org,
         per_page: 100
       }, cb);
     },
 
-    prs: ["orgRepos", function (cb, results) {
-      var repos = _.chain(results.orgRepos)
+    prs: ["repos", function (cb, results) {
+      var repos = _.chain(results.repos)
         .map(function (repo) { return [repo.name, repo]; })
         .object()
         .value()
 
-      async.each(results.orgRepos, function (repo, mapCb) {
+      async.each(results.repos, function (repo, mapCb) {
         github.pullRequests.getAll({
-          user: TEAM,
+          user: org,
           repo: repo.name,
           state: "open",
           per_page: 100
@@ -83,24 +69,50 @@ if (require.main === module) {
 
 
   }, function (err, results) {
-    if (err) { throw err; }
+    if (err) { return callback(err); }
+
+    var repos = {};
 
     // Iterate Repos.
     _.chain(results.prs)
       .filter(function (repo) { return repo.prs && repo.prs.length; })
       .sort(function (repo) { return repo.name; })
-      .each(function (repo) {
-        console.log("* " + repo.name + ": (" + repo.prs.length + ")");
+      .map(function (repo) {
+        repos[repo.name] = _.pick(repo, "name");
 
         // Iterate PRs.
-        _.chain(repo.prs)
+        repos[repo.name].prs = _.chain(repo.prs)
           .sort(function (pr) { return pr.number; })
-          .each(function (pr) {
-            var assignee = pr.assignee ? pr.assignee.login : null;
-            console.log("  * " + assignee + " - " + pr.number + ": " +
-              pr.title);
-          });
+          .map(function (pr) {
+            return {
+              assignee: (pr.assignee ? pr.assignee.login : null),
+              number: pr.number,
+              title: pr.title
+            };
+          })
+          .value();
       });
-  })
 
+    callback(null, repos);
+  });
+}
+
+// Main.
+if (require.main === module) {
+  // Authenticate.
+  github.authenticate({
+    type: "basic",
+    username: GIT_CONFIG.github.user,
+    password: GIT_CONFIG.github.password
+  });
+
+  getPrs(TEAM, function (err, repos) {
+    _.each(repos, function (repo) {
+      console.log("* " + repo.name + ": (" + repo.prs.length + ")");
+      _.each(repo.prs, function (pr) {
+        console.log("  * " + pr.assignee + " - " + pr.number + ": " +
+          pr.title);
+      });
+    });
+  });
 }
