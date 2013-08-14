@@ -20,11 +20,26 @@ $ pull-report --help
 
   Options:
 
-    -h, --help          output usage information
-    -V, --version       output the version number
-    -o, --org <orgs>    List of 1+ organizations
-    -u, --user [users]  List of 0+ users
+    -h, --help            output usage information
+    -V, --version         output the version number
+    -o, --org <orgs>      List of 1+ organizations
+    -u, --user [users]    List of 0+ users
+    --gh-user <username>  GitHub user name
+    --gh-pass <password>  GitHub password
 ```
+
+### Requirements
+
+`org`: You must enter 1+ organization names.
+
+### Authentication
+
+`pull-report` reads your "~/.gitconfig" file looking for an entry like:
+
+[github]
+  user = MY_USERNAME
+  password = MY_PASSWORD
+
 
 ### Examples
 

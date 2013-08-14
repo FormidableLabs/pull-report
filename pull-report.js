@@ -13,10 +13,16 @@ var pkg = require("./package.json"),
 
   HOME_PATH = process.env.HOME,
   GIT_CONFIG_PATH = [HOME_PATH, ".gitconfig"].join("/"),
-  GIT_CONFIG = iniparser.parseSync(GIT_CONFIG_PATH),
+  GIT_CONFIG = null,
 
   github;
 
+// Try and get the .gitconfig.
+try {
+  GIT_CONFIG = iniparser.parseSync(GIT_CONFIG_PATH);
+} catch (err) {
+  // Passthrough.
+}
 
 /**
  * Get PRs for organization.
@@ -108,19 +114,29 @@ function list(val) {
 
 // Main.
 if (require.main === module) {
+  var ghConfig = GIT_CONFIG && GIT_CONFIG.github ? GIT_CONFIG.github : {};
+
   // Parse command line arguments.
   program
     .version(pkg.version)
     .option("-o, --org <orgs>", "List of 1+ organizations", list)
     .option("-u, --user [users]", "List of 0+ users", list)
+    .option("--gh-user <username>", "GitHub user name")
+    .option("--gh-pass <password>", "GitHub password")
     .parse(process.argv);
 
   // Defaults
-  program.user || (program.user = null);
+  program.user    || (program.user = null);
+  program.ghUser  || (program.ghUser = ghConfig.user || null);
+  program.ghPass  || (program.ghPass = ghConfig.password || null);
 
   // Validation
   if (!program.org) {
     throw new Error("Must specify 1+ organization names");
+  }
+  if (!(program.ghUser && program.ghPass)) {
+    throw new Error("Must specify GitHub user / pass in .gitconfig or " +
+      "on the command line");
   }
 
   // Set up github auth.
@@ -134,8 +150,8 @@ if (require.main === module) {
   // Authenticate.
   github.authenticate({
     type: "basic",
-    username: GIT_CONFIG.github.user,
-    password: GIT_CONFIG.github.password
+    username: program.ghUser,
+    password: program.ghPass
   });
 
   // For each org,
