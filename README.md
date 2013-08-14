@@ -10,8 +10,9 @@ $ npm install -g pull-report
 ```
 
 ## Usage
-`pull-report` can retrieve all open pull requests for 1+ organizations and
-optionally filter by a user list.
+`pull-report` can retrieve all open pull requests for 1+
+[GitHub organizations](https://github.com/blog/674-introducing-organizations)
+and optionally filter by a user list.
 
 ```
 $ pull-report --help
@@ -36,10 +37,20 @@ $ pull-report --help
 
 `pull-report` reads your "~/.gitconfig" file looking for an entry like:
 
+```
 [github]
   user = MY_USERNAME
   password = MY_PASSWORD
+```
 
+You can alternately specify / override values on the command line:
+
+```
+$ pull-report \
+  --org FormidableLabs \
+  --gh-user MY_USERNAME \
+  --gh-pass MY_PASSWORD
+```
 
 ### Examples
 
