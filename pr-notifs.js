@@ -16,7 +16,7 @@ var pkg = require("./package.json"),
   GIT_CONFIG = iniparser.parseSync(GIT_CONFIG_PATH),
   TEAMS = [
     "FormidableLabs",
-    // "WalmartLabs"
+    "WalmartLabs"
   ],
 
   github;
@@ -87,8 +87,8 @@ function getPrs(org, callback) {
         repos[repo.name].prs = _.chain(repo.prs)
           .sort(function (pr) { return pr.number; })
           .map(function (pr) {
-            console.log(pr);
             return {
+              user: (pr.user ? pr.user.login : null),
               assignee: (pr.assignee ? pr.assignee.login : null),
               number: pr.number,
               title: pr.title
@@ -121,8 +121,8 @@ if (require.main === module) {
 
         // for each PR...
         _.each(repo.prs, function (pr) {
-          console.log("    * " + pr.assignee + " - " + pr.number + ": " +
-            pr.title);
+          console.log("    * " + pr.assignee + " / " + pr.user + " - " +
+            pr.number + ": " + pr.title);
         });
       });
 
