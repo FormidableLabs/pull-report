@@ -14,7 +14,10 @@ var pkg = require("./package.json"),
   HOME_PATH = process.env.HOME,
   GIT_CONFIG_PATH = [HOME_PATH, ".gitconfig"].join("/"),
   GIT_CONFIG = iniparser.parseSync(GIT_CONFIG_PATH),
-  TEAM = "FormidableLabs",
+  TEAMS = [
+    "FormidableLabs",
+    "WalmartLabs"
+  ],
 
   github;
 
@@ -106,13 +109,25 @@ if (require.main === module) {
     password: GIT_CONFIG.github.password
   });
 
-  getPrs(TEAM, function (err, repos) {
-    _.each(repos, function (repo) {
-      console.log("* " + repo.name + ": (" + repo.prs.length + ")");
-      _.each(repo.prs, function (pr) {
-        console.log("  * " + pr.assignee + " - " + pr.number + ": " +
-          pr.title);
+  // For each team,
+  async.eachSeries(TEAMS, function (team, cb) {
+    console.log("* " + team);
+
+    // for each repo,
+    getPrs(team, function (err, repos) {
+      _.each(repos, function (repo) {
+        console.log("  * " + repo.name + ": (" + repo.prs.length + ")");
+
+        // for each PR...
+        _.each(repo.prs, function (pr) {
+          console.log("    * " + pr.assignee + " - " + pr.number + ": " +
+            pr.title);
+        });
       });
+
+      cb();
+    }, function (err) {
+      if (err) { throw err; }
     });
   });
 }
