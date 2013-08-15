@@ -27,6 +27,7 @@ $ pull-report --help
     -u, --user [users]    List of 0+ users
     --gh-user <username>  GitHub user name
     --gh-pass <password>  GitHub password
+    --pr-url              Add pull request URL to output
 ```
 
 ### Requirements

@@ -87,7 +87,8 @@ function getPrs(opts, callback) {
               user: (pr.user ? pr.user.login : null),
               assignee: (pr.assignee ? pr.assignee.login : null),
               number: pr.number,
-              title: pr.title
+              title: pr.title,
+              url: pr.url
             };
           })
           .filter(function (pr) {
@@ -123,12 +124,14 @@ if (require.main === module) {
     .option("-u, --user [users]", "List of 0+ users", list)
     .option("--gh-user <username>", "GitHub user name")
     .option("--gh-pass <password>", "GitHub password")
+    .option("--pr-url", "Add pull request URL to output")
     .parse(process.argv);
 
   // Defaults
   program.user    || (program.user = null);
   program.ghUser  || (program.ghUser = ghConfig.user || null);
   program.ghPass  || (program.ghPass = ghConfig.password || null);
+  program.prUrl   || (program.prUrl = false);
 
   // Validation
   if (!program.org) {
@@ -167,6 +170,9 @@ if (require.main === module) {
         _.each(repo.prs, function (pr) {
           console.log("    * " + pr.assignee + " / " + pr.user + " - " +
             pr.number + ": " + pr.title);
+          if (program.prUrl) {
+            console.log("      " + pr.url);
+          }
         });
 
         console.log("");

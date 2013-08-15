@@ -2,19 +2,19 @@
   "name": "pull-report",
   "version": "0.0.1",
   "description": "Report on open GitHub pull requests for organizations and users",
+  "homepage": "https://github.com/FormidableLabs/pull-report",
+  "author": "Ryan Roemer <ryan.roemer@formidablelabs.com>",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/FormidableLabs/pull-report.git"
+  },
+  "license": "MIT",
   "main": "pull-report.js",
-  "bin": {
-    "pull-report": "./pull-report.js"
-  },
-  "scripts": {
-    "test": "./node_modules/.bin/jshint -c .jshint.json *.js"
-  },
   "keywords": [
     "github",
+    "git",
     "pull request"
   ],
-  "author": "Ryan Roemer <ryan.roemer@formidablelabs.com>",
-  "license": "MIT",
   "dependencies": {
     "github": "~0.1.10",
     "commander": "~2.0.0",
@@ -24,5 +24,11 @@
   },
   "devDependencies": {
     "jshint": "~2.1.9"
+  },
+  "bin": {
+    "pull-report": "./pull-report.js"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/jshint -c .jshint.json *.js"
   }
 }
