@@ -34,7 +34,7 @@ try {
 function getPrs(opts, callback) {
   // Actions.
   async.auto({
-    repos: function (cb, results) {
+    repos: function (cb) {
       github.repos.getFromOrg({
         org: opts.org,
         per_page: 100
@@ -51,7 +51,7 @@ function getPrs(opts, callback) {
         github.pullRequests.getAll({
           user: opts.org,
           repo: repo.name,
-          state: "open",
+          state: opts.state,
           per_page: 100
         }, function (err, prs) {
           if (prs && prs.length) {
@@ -65,7 +65,6 @@ function getPrs(opts, callback) {
         return cb(err, repos);
       });
     }]
-
 
   }, function (err, results) {
     if (err) { return callback(err); }
@@ -122,6 +121,8 @@ if (require.main === module) {
     .version(pkg.version)
     .option("-o, --org <orgs>", "List of 1+ organizations", list)
     .option("-u, --user [users]", "List of 0+ users", list)
+    .option("-h, --host <name>", "GitHub Enterprise API host URL")
+    .option("-s, --state <state>", "State of issues (default: open)")
     .option("--gh-user <username>", "GitHub user name")
     .option("--gh-pass <password>", "GitHub password")
     .option("--pr-url", "Add pull request URL to output")
@@ -129,6 +130,8 @@ if (require.main === module) {
 
   // Defaults
   program.user    || (program.user = null);
+  program.host    || (program.host = null);
+  program.state   || (program.state = "open");
   program.ghUser  || (program.ghUser = ghConfig.user || null);
   program.ghPass  || (program.ghPass = ghConfig.password || null);
   program.prUrl   || (program.prUrl = false);
@@ -141,6 +144,9 @@ if (require.main === module) {
     throw new Error("Must specify GitHub user / pass in .gitconfig or " +
       "on the command line");
   }
+  if (["open", "closed"].indexOf(program.state) < 0) {
+    throw new Error("Invalid issues state: " + program.state);
+  }
 
   // Set up github auth.
   var github = new GitHubApi({
@@ -150,11 +156,34 @@ if (require.main === module) {
     timeout: 5000
   });
 
+  // Hack in GH enterprise API support.
+  //
+  // Note: URL forms are different:
+  // https://ORG_HOST/api/v3/API_PATH/...
+  if (program.host && github.version === "3.0.0") {
+    // Allow for proxy HTTPS mismatch. This is obviously an unsatisfactory
+    // solution, but temporarily gets past:
+    // `UNABLE_TO_VERIFY_LEAF_SIGNATURE` errors.
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
+    // Patch host.
+    github.constants.host = program.host;
+
+    // Patch routes with "/api/v3"
+    _.each(github[github.version].routes, function (group, groupName) {
+      _.each(group, function (route, routeName) {
+        if (route.url) {
+          route.url = "/api/v3" + route.url;
+        }
+      });
+    });
+  }
+
   // Authenticate.
   github.authenticate({
     type: "basic",
     username: program.ghUser,
-    password: program.ghPass
+    password: program.ghPass,
   });
 
   // For each org,
@@ -162,7 +191,14 @@ if (require.main === module) {
     console.log("* " + org);
 
     // for each repo,
-    getPrs({ org: org, users: program.user }, function (err, repos) {
+    getPrs({
+      org: org,
+      users: program.user,
+      state: program.state
+    }, function (err, repos) {
+      // Short circuit error.
+      if (err) { return cb(err); }
+
       _.each(repos, function (repo) {
         console.log("  * " + repo.name + ": (" + repo.prs.length + ")");
 
@@ -178,9 +214,10 @@ if (require.main === module) {
         console.log("");
       });
 
-      cb(err);
-    }, function (err) {
-      if (err) { throw err; }
+      // Done.
+      cb();
     });
+  }, function (err) {
+    if (err) { throw err; }
   });
 }
