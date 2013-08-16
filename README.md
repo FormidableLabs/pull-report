@@ -117,4 +117,5 @@ But, any issues should be relatively easy to fix and enhance.
 * `pull-report` retrieves at most 100 pull requests for any repo.
 
 ## Licenses
+Copyright 2013 Formidable Labs, Inc.
 Released under the [MIT](./LICENSE.txt) License.
