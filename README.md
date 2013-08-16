@@ -76,7 +76,7 @@ host name of your GitHub Enterprise host.
 
 ### Examples
 
-Get all open pull requests for an organization:
+Get all open pull requests for **one organization**:
 
 ```
 $ pull-report --org FormidableLabs
@@ -86,13 +86,13 @@ $ pull-report --org FormidableLabs
     * per-nilsson / ryan-roemer - 2: Bug: Bar
 ```
 
-Get open pull requests for multiple organizations:
+Get open pull requests for **multiple organizations**:
 
 ```
 $ pull-report --org FormidableLabs,ORG2
 ```
 
-Get PRs for multiple orgs, filtered to a user list:
+Get PRs for multiple orgs, filtered to a **user list**:
 
 ```
 $ pull-report \
@@ -100,8 +100,7 @@ $ pull-report \
   --user ryan-roemer,USER2,USER3,USER4,USER5
 ```
 
-
-Get PRs for a GitHub enterprise organization:
+Get PRs for a **GitHub enterprise** organization:
 
 ```
 $ pull-report \
