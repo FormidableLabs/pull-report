@@ -164,7 +164,7 @@ if (require.main === module) {
     // Allow for proxy HTTPS mismatch. This is obviously an unsatisfactory
     // solution, but temporarily gets past:
     // `UNABLE_TO_VERIFY_LEAF_SIGNATURE` errors.
-    process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
     // Patch host.
     github.constants.host = program.host;
@@ -173,7 +173,7 @@ if (require.main === module) {
     _.each(github[github.version].routes, function (group, groupName) {
       _.each(group, function (route, routeName) {
         if (route.url) {
-          route.url = "/api/v3" + route.url
+          route.url = "/api/v3" + route.url;
         }
       });
     });
@@ -191,7 +191,11 @@ if (require.main === module) {
     console.log("* " + org);
 
     // for each repo,
-    getPrs({ org: org, users: program.user }, function (err, repos) {
+    getPrs({
+      org: org,
+      users: program.user,
+      state: program.state
+    }, function (err, repos) {
       // Short circuit error.
       if (err) { return cb(err); }
 
