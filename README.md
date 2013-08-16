@@ -27,6 +27,7 @@ $ pull-report --help
     -u, --user [users]    List of 0+ users
     -h, --host <name>     GitHub Enterprise API host URL
     -s, --state <state>   State of issues (default: open)
+    -i, --insecure        Allow unauthorized TLS (for proxies)
     --gh-user <username>  GitHub user name
     --gh-pass <password>  GitHub password
     --pr-url              Add pull request URL to output
@@ -65,11 +66,12 @@ there are a few things to note:
   in the underlying [node-github](https://github.com/ajaxorg/node-github)
   library. The underlying library could change how its internals work and
   our hack would be broken.
-* **Disables TLS Cert Matching**: Pull report disables
-  `NODE_TLS_REJECT_UNAUTHORIZED` to avoid an `UNABLE_TO_VERIFY_LEAF_SIGNATURE`
-  error when hitting GitHub enterprise through a VPN or proxy. Do not use
-  the tool if you can't otherwise verify you are going through a safe transport
-  mechanism (i.e., in other programs that **do** verify).
+* **Disables TLS Cert Matching**: Pull report has an `--insecure` option to
+  disable the `NODE_TLS_REJECT_UNAUTHORIZED` environment variable to avoid an
+  `UNABLE_TO_VERIFY_LEAF_SIGNATURE` error when hitting GitHub enterprise through
+  a VPN or proxy. Do not use the flag if you can't otherwise verify you are
+  going through a safe transport mechanism (i.e., in other programs that **do**
+  verify).
 
 To retrieve reports from GitHub Enterprise, set the `--host` flag to the
 host name of your GitHub Enterprise host.

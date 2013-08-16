@@ -123,18 +123,20 @@ if (require.main === module) {
     .option("-u, --user [users]", "List of 0+ users", list)
     .option("-h, --host <name>", "GitHub Enterprise API host URL")
     .option("-s, --state <state>", "State of issues (default: open)")
+    .option("-i, --insecure", "Allow unauthorized TLS (for proxies)")
     .option("--gh-user <username>", "GitHub user name")
     .option("--gh-pass <password>", "GitHub password")
     .option("--pr-url", "Add pull request URL to output")
     .parse(process.argv);
 
   // Defaults
-  program.user    || (program.user = null);
-  program.host    || (program.host = null);
-  program.state   || (program.state = "open");
-  program.ghUser  || (program.ghUser = ghConfig.user || null);
-  program.ghPass  || (program.ghPass = ghConfig.password || null);
-  program.prUrl   || (program.prUrl = false);
+  program.user      || (program.user = null);
+  program.host      || (program.host = null);
+  program.state     || (program.state = "open");
+  program.ghUser    || (program.ghUser = ghConfig.user || null);
+  program.ghPass    || (program.ghPass = ghConfig.password || null);
+  program.prUrl     || (program.prUrl = false);
+  program.insecure  || (program.insecure = false);
 
   // Validation
   if (!program.org) {
@@ -164,7 +166,9 @@ if (require.main === module) {
     // Allow for proxy HTTPS mismatch. This is obviously an unsatisfactory
     // solution, but temporarily gets past:
     // `UNABLE_TO_VERIFY_LEAF_SIGNATURE` errors.
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    if (program.insecure) {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    }
 
     // Patch host.
     github.constants.host = program.host;
