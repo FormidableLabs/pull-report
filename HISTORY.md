@@ -1,6 +1,9 @@
 History
 =======
 
+## v0.0.4
+* Tweak PR URLs to be actual PR web pages.
+
 ## v0.0.3
 * Add `--state (open|closed)` flag.
 * #1: Add support for GitHub Enterprise with `--host` flag.

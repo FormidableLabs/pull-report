@@ -69,7 +69,8 @@ function getPrs(opts, callback) {
   }, function (err, results) {
     if (err) { return callback(err); }
 
-    var repos = {};
+    var repos = {},
+      entUrlRe = /api\/v[0-9]\/repos\//;
 
     // Iterate Repos.
     _.chain(results.prs)
@@ -82,12 +83,19 @@ function getPrs(opts, callback) {
         repoData.prs = _.chain(repo.prs)
           .sort(function (pr) { return pr.number; })
           .map(function (pr) {
+            var url = pr.url.replace(/pulls\/([0-9]+)$/, "pull/$1");
+
+            // Mutate PR url to undo Enterprise hack.
+            if (entUrlRe.test(url)) {
+              url = url.replace(entUrlRe, "");
+            }
+
             return {
               user: (pr.user ? pr.user.login : null),
               assignee: (pr.assignee ? pr.assignee.login : null),
               number: pr.number,
               title: pr.title,
-              url: pr.url
+              url: url
             };
           })
           .filter(function (pr) {
