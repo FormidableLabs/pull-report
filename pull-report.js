@@ -85,9 +85,15 @@ function getPrs(opts, callback) {
           .map(function (pr) {
             var url = pr.url.replace(/pulls\/([0-9]+)$/, "pull/$1");
 
-            // Mutate PR url to undo Enterprise hack.
+            // Mutate URLs to actual PR urls.
             if (entUrlRe.test(url)) {
+              // Undo Enterprise hack.
               url = url.replace(entUrlRe, "");
+            } else {
+              // Normal GitHub.
+              url = url.replace(
+                "https://api.github.com/repos/",
+                "https://github.com/");
             }
 
             return {
