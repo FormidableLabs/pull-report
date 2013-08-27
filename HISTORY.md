@@ -2,7 +2,7 @@ History
 =======
 
 ## v0.0.4
-* Tweak PR URLs to be actual PR web pages.
+* Tweak PR URLs to be actual PR web pages for normal / Enterprise GitHub.
 
 ## v0.0.3
 * Add `--state (open|closed)` flag.
