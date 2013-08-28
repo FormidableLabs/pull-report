@@ -233,8 +233,10 @@ if (require.main === module) {
       });
 
       // Done.
+      console.log("");
       cb();
     });
+
   }, function (err) {
     if (err) { throw err; }
   });
