@@ -7,6 +7,7 @@ var pkg = require("./package.json"),
 
   _ = require("underscore"),
   async = require("async"),
+  handlebars = require("handlebars"),
   program = require("commander"),
   iniparser = require("iniparser"),
   GitHubApi = require("github"),
@@ -128,8 +129,11 @@ function list(val) {
 
 // Main.
 if (require.main === module) {
-  var ghConfig = GIT_CONFIG && GIT_CONFIG.github ? GIT_CONFIG.github : {};
+  var ghConfig = (GIT_CONFIG && GIT_CONFIG.github) ? GIT_CONFIG.github : {};
 
+  // --------------------------------------------------------------------------
+  // Configuration
+  // --------------------------------------------------------------------------
   // Parse command line arguments.
   program
     .version(pkg.version)
@@ -152,7 +156,9 @@ if (require.main === module) {
   program.prUrl     || (program.prUrl = false);
   program.insecure  || (program.insecure = false);
 
+  // --------------------------------------------------------------------------
   // Validation
+  // --------------------------------------------------------------------------
   if (!program.org) {
     throw new Error("Must specify 1+ organization names");
   }
@@ -164,6 +170,9 @@ if (require.main === module) {
     throw new Error("Invalid issues state: " + program.state);
   }
 
+  // --------------------------------------------------------------------------
+  // Authentication
+  // --------------------------------------------------------------------------
   // Set up github auth.
   var github = new GitHubApi({
     // required
@@ -204,8 +213,11 @@ if (require.main === module) {
     password: program.ghPass,
   });
 
-  // For each org,
-  async.eachSeries(program.org, function (org, cb) {
+
+  // --------------------------------------------------------------------------
+  // Iterate PRs for Organizations.
+  // --------------------------------------------------------------------------
+  var handleOrg = function (org, cb) {
     console.log("* " + org);
 
     // for each repo,
@@ -236,8 +248,10 @@ if (require.main === module) {
       console.log("");
       cb();
     });
+  };
 
-  }, function (err) {
+  // For each org,
+  async.eachSeries(program.org, handleOrg, function (err) {
     if (err) { throw err; }
   });
 }

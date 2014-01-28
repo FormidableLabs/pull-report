@@ -1,6 +1,9 @@
 History
 =======
 
+## Current
+* Add Handlebars template support.
+
 ## v0.0.4
 * Tweak PR URLs to be actual PR web pages for normal / Enterprise GitHub.
 
