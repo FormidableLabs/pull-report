@@ -144,21 +144,14 @@ if (require.main === module) {
     .option("-o, --org <orgs>", "List of 1+ organizations", list)
     .option("-u, --user [users]", "List of 0+ users", list)
     .option("-h, --host <name>", "GitHub Enterprise API host URL")
-    .option("-s, --state <state>", "State of issues (default: open)")
-    .option("-i, --insecure", "Allow unauthorized TLS (for proxies)")
-    .option("--gh-user <username>", "GitHub user name")
-    .option("--gh-pass <password>", "GitHub password")
-    .option("--pr-url", "Add pull request URL to output")
+    .option("-s, --state <state>", "State of issues (default: open)", "open")
+    .option("-i, --insecure", "Allow unauthorized TLS (for proxies)", false)
+    .option("-H, --html", "Display report as HTML", false)
+    .option("-t, --tmpl <path>", "Handlebars template path")
+    .option("--gh-user <username>", "GitHub user name", ghConfig.user || null)
+    .option("--gh-pass <password>", "GitHub pass", ghConfig.password || null)
+    .option("--pr-url", "Add pull request URL to output", false)
     .parse(process.argv);
-
-  // Defaults
-  program.user      || (program.user = null);
-  program.host      || (program.host = null);
-  program.state     || (program.state = "open");
-  program.ghUser    || (program.ghUser = ghConfig.user || null);
-  program.ghPass    || (program.ghPass = ghConfig.password || null);
-  program.prUrl     || (program.prUrl = false);
-  program.insecure  || (program.insecure = false);
 
   // --------------------------------------------------------------------------
   // Validation
@@ -173,6 +166,19 @@ if (require.main === module) {
   if (["open", "closed"].indexOf(program.state) < 0) {
     throw new Error("Invalid issues state: " + program.state);
   }
+
+  // --------------------------------------------------------------------------
+  // Template
+  // --------------------------------------------------------------------------
+  var tmplPath = "./templates/text/org.hbs";
+  if (program.html) {
+    tmplPath = "./templates/html/org.hbs";
+  } else if (program.tmpl) {
+    tmplPath = program.tmpl;
+  }
+
+  var tmplStr = fs.readFileSync(tmplPath).toString();
+  var tmpl = handlebars.compile(tmplStr);
 
   // --------------------------------------------------------------------------
   // Authentication
@@ -225,16 +231,9 @@ if (require.main === module) {
   // --------------------------------------------------------------------------
   // Set display function.
   // --------------------------------------------------------------------------
-  //
-  var render = function (tmplPath) {
-    return function (results) {
-      var tmplStr = fs.readFileSync(tmplPath).toString();
-      var tmpl = handlebars.compile(tmplStr);
-      write(tmpl(results));
-    };
+  var display = function (results) {
+    write(tmpl(results));
   };
-
-  var display = render("./templates/text/org.hbs");
 
   // --------------------------------------------------------------------------
   // Iterate PRs for Organizations.
