@@ -225,13 +225,16 @@ if (require.main === module) {
   // --------------------------------------------------------------------------
   // Set display function.
   // --------------------------------------------------------------------------
-  var displayText = function (results) {
-    var tmplStr = fs.readFileSync("./templates/text/org.hbs").toString();
-    var tmpl = handlebars.compile(tmplStr);
-    write(tmpl(results));
+  //
+  var render = function (tmplPath) {
+    return function (results) {
+      var tmplStr = fs.readFileSync(tmplPath).toString();
+      var tmpl = handlebars.compile(tmplStr);
+      write(tmpl(results));
+    };
   };
 
-  var display = displayText;
+  var display = render("./templates/text/org.hbs");
 
   // --------------------------------------------------------------------------
   // Iterate PRs for Organizations.
