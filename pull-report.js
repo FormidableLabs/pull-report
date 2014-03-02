@@ -266,12 +266,6 @@ if (require.main === module) {
     }, cb);
   }, function (err, results) {
     if (err) { throw err; }
-
-    // Start with empties (bc not part of results).
-    var emptyResults = _.map(program.org, function (org) {
-      return { org: org, repos: [] };
-    });
-
-    display(_.extend(emptyResults, results));
+    display(results);
   });
 }
