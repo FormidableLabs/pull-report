@@ -2,19 +2,29 @@
   <h2>{{org}}</h2>
   {{~#each repos}}
     <h3>{{name}} <em>({{prs.length}})</em><h3>
-    <ul>
+    <table class="pure-table">
+    <thead>
+      <tr>
+        <th>Reviewer</th>
+        <th>Coder</th>
+        <th>Number</th>
+        <th>Title</th>
+      </tr>
+    </thead>
+    <tbody>
     {{~#each prs}}
-      <li>
-        {{#if assignee~}}
-          <a href="{{userUrl}}/{{assignee}}">{{assignee}}</a>
-        {{~else~}}
-          <span class="unassigned">Unassigned</span>
-        {{~/if}}
-        /
-        <a href="{{userUrl}}/{{user}}">{{user}}</a>:
-        <a href="{{url}}">{{number}} - &quot;{{title}}&quot;</a>
-      </li>
+      <tr>
+          <td>{{#if assignee~}}
+            <a href="{{userUrl}}/{{assignee}}">{{assignee}}</a>
+          {{~else~}}
+            <span class="unassigned">Unassigned</span>
+          {{~/if}}</td>
+          <td><a href="{{userUrl}}/{{user}}">{{user}}</a></td>
+          <td><a href="{{url}}">{{number}}</a></td>
+          <td><a href="{{url}}">&quot;{{title}}&quot;</a></td>
+      </tr>
     {{~/each}}
-    </ul>
+    </tbody>
+    </table>
   {{/each}}
 {{/each~}}
