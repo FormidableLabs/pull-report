@@ -73,7 +73,7 @@ function getPrs(opts, callback) {
 
     var repos = {},
       entUrlRe = /api\/v[0-9]\/repos\//,
-      orgUrl;
+      orgUrl = null;
 
     // Iterate Repos.
     _.chain(results.prs)
