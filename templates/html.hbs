@@ -1,7 +1,12 @@
 {{#each this~}}
-  <h2>{{org}}</h2>
+  <h2>
+    <a href="{{orgUrl}}">{{org}}</a>
+  </h2>
   {{~#each repos}}
-    <h3>{{name}} <em>({{prs.length}})</em><h3>
+    <h3>
+      <a href="{{url}}">{{name}}</a>
+      (<em><a href="{{url}}/pulls">{{prs.length}}</a></em>)
+    </h3>
     <table class="pure-table">
     <thead>
       <tr>

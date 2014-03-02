@@ -72,14 +72,22 @@ function getPrs(opts, callback) {
     if (err) { return callback(err); }
 
     var repos = {},
-      entUrlRe = /api\/v[0-9]\/repos\//;
+      entUrlRe = /api\/v[0-9]\/repos\//,
+      orgUrl;
 
     // Iterate Repos.
     _.chain(results.prs)
       .filter(function (repo) { return repo.prs && repo.prs.length; })
       .sort(function (repo) { return repo.name; })
       .map(function (repo) {
-        var repoData = _.pick(repo, "name");
+        // Add in owner URL.
+        orgUrl = orgUrl || repo.owner.html_url;
+
+        // Starting data.
+        var repoData = {
+          name: repo.name,
+          url: repo.html_url
+        };
 
         // Iterate PRs.
         repoData.prs = _.chain(repo.prs)
@@ -121,8 +129,10 @@ function getPrs(opts, callback) {
         }
       });
 
+    // Piggy back owner url off first PR.
     callback(null, {
       org: opts.org,
+      orgUrl: orgUrl,
       repos: repos
     });
   });
