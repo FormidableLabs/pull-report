@@ -119,7 +119,10 @@ function getPrs(opts, callback) {
         }
       });
 
-    callback(null, repos);
+    callback(null, {
+      org: opts.org,
+      repos: repos
+    });
   });
 }
 
@@ -213,45 +216,42 @@ if (require.main === module) {
     password: program.ghPass,
   });
 
+  // --------------------------------------------------------------------------
+  // Set display function.
+  // --------------------------------------------------------------------------
+  var displayConsole = function (result) {
+    console.log("* " + result.org);
+
+    _.each(result.repos, function (repo) {
+      console.log("  * " + repo.name + ": (" + repo.prs.length + ")");
+
+      // for each PR...
+      _.each(repo.prs, function (pr) {
+        console.log("    * " + pr.assignee + " / " + pr.user + " - " +
+          pr.number + ": " + pr.title);
+        if (program.prUrl) {
+          console.log("      " + pr.url);
+        }
+      });
+
+      console.log("");
+    });
+  };
+
+  var display = displayConsole;
 
   // --------------------------------------------------------------------------
   // Iterate PRs for Organizations.
   // --------------------------------------------------------------------------
-  var handleOrg = function (org, cb) {
-    console.log("* " + org);
-
-    // for each repo,
+  // Get PRs for each org in parallel, then display in order.
+  async.map(program.org, function (org, cb) {
     getPrs({
       org: org,
       users: program.user,
       state: program.state
-    }, function (err, repos) {
-      // Short circuit error.
-      if (err) { return cb(err); }
-
-      _.each(repos, function (repo) {
-        console.log("  * " + repo.name + ": (" + repo.prs.length + ")");
-
-        // for each PR...
-        _.each(repo.prs, function (pr) {
-          console.log("    * " + pr.assignee + " / " + pr.user + " - " +
-            pr.number + ": " + pr.title);
-          if (program.prUrl) {
-            console.log("      " + pr.url);
-          }
-        });
-
-        console.log("");
-      });
-
-      // Done.
-      console.log("");
-      cb();
-    });
-  };
-
-  // For each org,
-  async.eachSeries(program.org, handleOrg, function (err) {
+    }, cb);
+  }, function (err, results) {
     if (err) { throw err; }
+    _.each(results, display);
   });
 }
