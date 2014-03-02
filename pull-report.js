@@ -3,7 +3,8 @@
 /**
  * Pull request notifications.
  */
-var pkg = require("./package.json"),
+var fs = require("fs"),
+  pkg = require("./package.json"),
 
   _ = require("underscore"),
   async = require("async"),
@@ -217,28 +218,41 @@ if (require.main === module) {
   });
 
   // --------------------------------------------------------------------------
+  // Set output function.
+  // --------------------------------------------------------------------------
+  var write = console.log;
+
+  // --------------------------------------------------------------------------
   // Set display function.
   // --------------------------------------------------------------------------
-  var displayConsole = function (result) {
-    console.log("* " + result.org);
+  var displayConsole = function (results) {
+    _.each(results, function (result) {
+      write("* " + result.org);
 
-    _.each(result.repos, function (repo) {
-      console.log("  * " + repo.name + ": (" + repo.prs.length + ")");
+      _.each(result.repos, function (repo) {
+        write("  * " + repo.name + ": (" + repo.prs.length + ")");
 
-      // for each PR...
-      _.each(repo.prs, function (pr) {
-        console.log("    * " + pr.assignee + " / " + pr.user + " - " +
-          pr.number + ": " + pr.title);
-        if (program.prUrl) {
-          console.log("      " + pr.url);
-        }
+        // for each PR...
+        _.each(repo.prs, function (pr) {
+          write("    * " + pr.assignee + " / " + pr.user + " - " +
+            pr.number + ": " + pr.title);
+          if (program.prUrl) {
+            write("      " + pr.url);
+          }
+        });
+
+        write("");
       });
-
-      console.log("");
     });
   };
 
-  var display = displayConsole;
+  var displayText = function (results) {
+    var tmplStr = fs.readFileSync("./templates/text/org.hbs").toString();
+    var tmpl = handlebars.compile(tmplStr);
+    write(tmpl(results));
+  };
+
+  var display = displayText;
 
   // --------------------------------------------------------------------------
   // Iterate PRs for Organizations.
@@ -252,6 +266,6 @@ if (require.main === module) {
     }, cb);
   }, function (err, results) {
     if (err) { throw err; }
-    _.each(results, display);
+    display(results);
   });
 }
