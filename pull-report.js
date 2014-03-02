@@ -99,11 +99,12 @@ function getPrs(opts, callback) {
             }
 
             return {
-              user: (pr.user ? pr.user.login : null),
-              assignee: (pr.assignee ? pr.assignee.login : null),
+              userUrl: "https://" + (program.host || "github.com"),
+              user: pr.user ? pr.user.login : null,
+              assignee: pr.assignee ? pr.assignee.login : null,
               number: pr.number,
               title: pr.title,
-              url: program.prUrl ? url : null
+              url: program.prUrl || program.html ? url : null
             };
           })
           .filter(function (pr) {

@@ -1,1 +1,20 @@
-<h1>TODO HTML</h1>
+{{#each this~}}
+  <h2>{{org}}</h2>
+  {{~#each repos}}
+    <h3>{{name}} <em>({{prs.length}})</em><h3>
+    <ul>
+    {{~#each prs}}
+      <li>
+        {{#if assignee~}}
+          <a href="{{userUrl}}/{{assignee}}">{{assignee}}</a>
+        {{~else~}}
+          <span class="unassigned">Unassigned</span>
+        {{~/if}}
+        /
+        <a href="{{userUrl}}/{{user}}">{{user}}</a>:
+        <a href="{{url}}">{{number}} - &quot;{{title}}&quot;</a>
+      </li>
+    {{~/each}}
+    </ul>
+  {{/each}}
+{{/each~}}
