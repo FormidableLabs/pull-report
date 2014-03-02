@@ -103,7 +103,7 @@ function getPrs(opts, callback) {
               assignee: (pr.assignee ? pr.assignee.login : null),
               number: pr.number,
               title: pr.title,
-              url: url
+              url: program.prUrl ? url : null
             };
           })
           .filter(function (pr) {
@@ -225,27 +225,6 @@ if (require.main === module) {
   // --------------------------------------------------------------------------
   // Set display function.
   // --------------------------------------------------------------------------
-  var displayConsole = function (results) {
-    _.each(results, function (result) {
-      write("* " + result.org);
-
-      _.each(result.repos, function (repo) {
-        write("  * " + repo.name + ": (" + repo.prs.length + ")");
-
-        // for each PR...
-        _.each(repo.prs, function (pr) {
-          write("    * " + pr.assignee + " / " + pr.user + " - " +
-            pr.number + ": " + pr.title);
-          if (program.prUrl) {
-            write("      " + pr.url);
-          }
-        });
-
-        write("");
-      });
-    });
-  };
-
   var displayText = function (results) {
     var tmplStr = fs.readFileSync("./templates/text/org.hbs").toString();
     var tmpl = handlebars.compile(tmplStr);
