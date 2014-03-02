@@ -25,11 +25,13 @@ $ pull-report --help
     -V, --version         output the version number
     -o, --org <orgs>      List of 1+ organizations
     -u, --user [users]    List of 0+ users
-    -h, --host <name>     GitHub Enterprise API host URL
+    -H, --host <name>     GitHub Enterprise API host URL
     -s, --state <state>   State of issues (default: open)
     -i, --insecure        Allow unauthorized TLS (for proxies)
+    -t, --tmpl <path>     Handlebars template path
+    --html                Display report as HTML
     --gh-user <username>  GitHub user name
-    --gh-pass <password>  GitHub password
+    --gh-pass <password>  GitHub pass
     --pr-url              Add pull request URL to output
 ```
 
