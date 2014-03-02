@@ -170,9 +170,9 @@ if (require.main === module) {
   // --------------------------------------------------------------------------
   // Template
   // --------------------------------------------------------------------------
-  var tmplPath = "./templates/text/org.hbs";
+  var tmplPath = "./templates/text.hbs";
   if (program.html) {
-    tmplPath = "./templates/html/org.hbs";
+    tmplPath = "./templates/html.hbs";
   } else if (program.tmpl) {
     tmplPath = program.tmpl;
   }
