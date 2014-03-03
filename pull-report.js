@@ -3,10 +3,12 @@
 /**
  * Pull request notifications.
  */
-var pkg = require("./package.json"),
+var fs = require("fs"),
+  pkg = require("./package.json"),
 
   _ = require("underscore"),
   async = require("async"),
+  handlebars = require("handlebars"),
   program = require("commander"),
   iniparser = require("iniparser"),
   GitHubApi = require("github"),
@@ -70,14 +72,22 @@ function getPrs(opts, callback) {
     if (err) { return callback(err); }
 
     var repos = {},
-      entUrlRe = /api\/v[0-9]\/repos\//;
+      entUrlRe = /api\/v[0-9]\/repos\//,
+      orgUrl = null;
 
     // Iterate Repos.
     _.chain(results.prs)
       .filter(function (repo) { return repo.prs && repo.prs.length; })
       .sort(function (repo) { return repo.name; })
       .map(function (repo) {
-        var repoData = _.pick(repo, "name");
+        // Add in owner URL.
+        orgUrl = orgUrl || repo.owner.html_url;
+
+        // Starting data.
+        var repoData = {
+          name: repo.name,
+          url: repo.html_url
+        };
 
         // Iterate PRs.
         repoData.prs = _.chain(repo.prs)
@@ -97,11 +107,12 @@ function getPrs(opts, callback) {
             }
 
             return {
-              user: (pr.user ? pr.user.login : null),
-              assignee: (pr.assignee ? pr.assignee.login : null),
+              userUrl: "https://" + (program.host || "github.com"),
+              user: pr.user ? pr.user.login : null,
+              assignee: pr.assignee ? pr.assignee.login : null,
               number: pr.number,
               title: pr.title,
-              url: url
+              url: program.prUrl || program.html ? url : null
             };
           })
           .filter(function (pr) {
@@ -118,7 +129,12 @@ function getPrs(opts, callback) {
         }
       });
 
-    callback(null, repos);
+    // Piggy back owner url off first PR.
+    callback(null, {
+      org: opts.org,
+      orgUrl: orgUrl,
+      repos: repos
+    });
   });
 }
 
@@ -128,31 +144,29 @@ function list(val) {
 
 // Main.
 if (require.main === module) {
-  var ghConfig = GIT_CONFIG && GIT_CONFIG.github ? GIT_CONFIG.github : {};
+  var ghConfig = (GIT_CONFIG && GIT_CONFIG.github) ? GIT_CONFIG.github : {};
 
+  // --------------------------------------------------------------------------
+  // Configuration
+  // --------------------------------------------------------------------------
   // Parse command line arguments.
   program
     .version(pkg.version)
     .option("-o, --org <orgs>", "List of 1+ organizations", list)
     .option("-u, --user [users]", "List of 0+ users", list)
-    .option("-h, --host <name>", "GitHub Enterprise API host URL")
-    .option("-s, --state <state>", "State of issues (default: open)")
-    .option("-i, --insecure", "Allow unauthorized TLS (for proxies)")
-    .option("--gh-user <username>", "GitHub user name")
-    .option("--gh-pass <password>", "GitHub password")
-    .option("--pr-url", "Add pull request URL to output")
+    .option("-H, --host <name>", "GitHub Enterprise API host URL")
+    .option("-s, --state <state>", "State of issues (default: open)", "open")
+    .option("-i, --insecure", "Allow unauthorized TLS (for proxies)", false)
+    .option("-t, --tmpl <path>", "Handlebars template path")
+    .option("--html", "Display report as HTML", false)
+    .option("--gh-user <username>", "GitHub user name", ghConfig.user || null)
+    .option("--gh-pass <password>", "GitHub pass", ghConfig.password || null)
+    .option("--pr-url", "Add pull request URL to output", false)
     .parse(process.argv);
 
-  // Defaults
-  program.user      || (program.user = null);
-  program.host      || (program.host = null);
-  program.state     || (program.state = "open");
-  program.ghUser    || (program.ghUser = ghConfig.user || null);
-  program.ghPass    || (program.ghPass = ghConfig.password || null);
-  program.prUrl     || (program.prUrl = false);
-  program.insecure  || (program.insecure = false);
-
+  // --------------------------------------------------------------------------
   // Validation
+  // --------------------------------------------------------------------------
   if (!program.org) {
     throw new Error("Must specify 1+ organization names");
   }
@@ -164,6 +178,22 @@ if (require.main === module) {
     throw new Error("Invalid issues state: " + program.state);
   }
 
+  // --------------------------------------------------------------------------
+  // Template
+  // --------------------------------------------------------------------------
+  var tmplPath = "./templates/text.hbs";
+  if (program.html) {
+    tmplPath = "./templates/html.hbs";
+  } else if (program.tmpl) {
+    tmplPath = program.tmpl;
+  }
+
+  var tmplStr = fs.readFileSync(tmplPath).toString();
+  var tmpl = handlebars.compile(tmplStr);
+
+  // --------------------------------------------------------------------------
+  // Authentication
+  // --------------------------------------------------------------------------
   // Set up github auth.
   var github = new GitHubApi({
     // required
@@ -204,40 +234,30 @@ if (require.main === module) {
     password: program.ghPass,
   });
 
-  // For each org,
-  async.eachSeries(program.org, function (org, cb) {
-    console.log("* " + org);
+  // --------------------------------------------------------------------------
+  // Set output function.
+  // --------------------------------------------------------------------------
+  var write = console.log;
 
-    // for each repo,
+  // --------------------------------------------------------------------------
+  // Set display function.
+  // --------------------------------------------------------------------------
+  var display = function (results) {
+    write(tmpl(results));
+  };
+
+  // --------------------------------------------------------------------------
+  // Iterate PRs for Organizations.
+  // --------------------------------------------------------------------------
+  // Get PRs for each org in parallel, then display in order.
+  async.map(program.org, function (org, cb) {
     getPrs({
       org: org,
       users: program.user,
       state: program.state
-    }, function (err, repos) {
-      // Short circuit error.
-      if (err) { return cb(err); }
-
-      _.each(repos, function (repo) {
-        console.log("  * " + repo.name + ": (" + repo.prs.length + ")");
-
-        // for each PR...
-        _.each(repo.prs, function (pr) {
-          console.log("    * " + pr.assignee + " / " + pr.user + " - " +
-            pr.number + ": " + pr.title);
-          if (program.prUrl) {
-            console.log("      " + pr.url);
-          }
-        });
-
-        console.log("");
-      });
-
-      // Done.
-      console.log("");
-      cb();
-    });
-
-  }, function (err) {
+    }, cb);
+  }, function (err, results) {
     if (err) { throw err; }
+    display(results);
   });
 }

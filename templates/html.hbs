@@ -1,0 +1,35 @@
+{{#each this~}}
+  <h2>
+    <a class="org" href="{{orgUrl}}">{{org}}</a>
+  </h2>
+  {{~#each repos}}
+    <h3>
+      <a class="repo" href="{{url}}">{{name}}</a>
+      (<em><a href="{{url}}/pulls">{{prs.length}}</a></em>)
+    </h3>
+    <table class="pure-table pure-table-bordered">
+    <thead>
+      <tr>
+        <th>Reviewer</th>
+        <th>Coder</th>
+        <th>Number</th>
+        <th>Title</th>
+      </tr>
+    </thead>
+    <tbody>
+    {{~#each prs}}
+      <tr>
+          <td>{{#if assignee~}}
+            <a class="assignee" href="{{userUrl}}/{{assignee}}">{{assignee}}</a>
+          {{~else~}}
+            <span class="unassigned">Unassigned</span>
+          {{~/if}}</td>
+          <td><a class="user" href="{{userUrl}}/{{user}}">{{user}}</a></td>
+          <td><a class="number" href="{{url}}">{{number}}</a></td>
+          <td><a class="title" href="{{url}}">&quot;{{title}}&quot;</a></td>
+      </tr>
+    {{~/each}}
+    </tbody>
+    </table>
+  {{/each}}
+{{/each~}}

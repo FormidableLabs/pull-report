@@ -1,0 +1,8 @@
+{{#each this~}}
+* {{org}}:
+{{~#each repos}}
+  * {{name}}: ({{prs.length}}){{#each prs}}
+    * {{#if assignee}}{{assignee}}{{else}}EMPTY{{/if}} / {{user}} - {{number}}: {{title}}{{#if url}}
+      {{url}}{{/if}}{{/each}}
+{{/each}}
+{{/each~}}
