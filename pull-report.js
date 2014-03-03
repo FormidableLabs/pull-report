@@ -4,6 +4,7 @@
  * Pull request notifications.
  */
 var fs = require("fs"),
+  path = require("path"),
   pkg = require("./package.json"),
 
   _ = require("underscore"),
@@ -181,9 +182,9 @@ if (require.main === module) {
   // --------------------------------------------------------------------------
   // Template
   // --------------------------------------------------------------------------
-  var tmplPath = "./templates/text.hbs";
+  var tmplPath = path.join(__dirname, "templates/text.hbs");
   if (program.html) {
-    tmplPath = "./templates/html.hbs";
+    tmplPath = path.join(__dirname, "templates/html.hbs");
   } else if (program.tmpl) {
     tmplPath = program.tmpl;
   }

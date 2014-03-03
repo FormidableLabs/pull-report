@@ -1,6 +1,9 @@
 History
 =======
 
+## v0.0.6
+* Fix template paths for text/html Handlebars templates.
+
 ## v0.0.5
 * Change `host` short flag to `-H` (don't conflict with help `-h`).
 * Add Handlebars template support.
