@@ -1,7 +1,7 @@
 History
 =======
 
-## Current
+## v0.0.5
 * Change `host` short flag to `-H` (don't conflict with help `-h`).
 * Add Handlebars template support.
 
