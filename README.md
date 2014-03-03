@@ -80,14 +80,16 @@ host name of your GitHub Enterprise host.
 
 ### Examples
 
-Get all open pull requests for **one organization**:
+Get all of the open pull requests for **one organization**:
 
 ```
 $ pull-report --org FormidableLabs
-* FormidableLabs
-  * atlas-api-client: (2)
-    * per-nilsson / ryan-roemer - 1: Feature: Awesome
-    * per-nilsson / ryan-roemer - 2: Bug: Bar
+* FormidableLabs:
+  * work-for-us: (1)
+    * joe-user / jane-user - 1: Added GUI to job posting API
+
+  * chai-jq: (1)
+    * jane-user / joe-user - 8: fix DOC anchor links
 ```
 
 Get open pull requests for **multiple organizations**:
@@ -111,6 +113,23 @@ $ pull-report \
   --host custom-gh-enterprise.example.com \
   --org ORG1
 ```
+
+### Templates
+
+Pull report uses [Handlebars.js](http://handlebarsjs.com/) templates for
+rendering reports. The built-in templates available are:
+
+* **[text.hbs](./templates/text.hbs)**: Default pure text template. Used if no
+  other option or templates specified.
+* **[html.hbs](./templates/html.hbs)**: HTML output templates. Used if the
+  `--html` option is provided. The provided HTML template has some
+  preliminary classes for user styling (in another HTML document) and
+  a few random [Pure CSS](http://purecss.io/) classes that are currently
+  being used in another project. (We'll look to shore this up in future
+  releases.)
+
+Custom templates can be specified using the command option:
+`--tmpl /PATH/TO/TEMPLATE.hbs`.
 
 ### Limitations
 
