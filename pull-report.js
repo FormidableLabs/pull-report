@@ -113,7 +113,8 @@ function getPrs(opts, callback) {
               assignee: pr.assignee ? pr.assignee.login : null,
               number: pr.number,
               title: pr.title,
-              url: program.prUrl || program.html ? url : null
+              url: program.prUrl || program.html ? url : null,
+              updated_at: pr.updated_at,
             };
           })
           .filter(function (pr) {
@@ -160,6 +161,7 @@ if (require.main === module) {
     .option("-i, --insecure", "Allow unauthorized TLS (for proxies)", false)
     .option("-t, --tmpl <path>", "Handlebars template path")
     .option("--html", "Display report as HTML", false)
+    .option("--csv", "Dispay report as CSV", false)
     .option("--gh-user <username>", "GitHub user name", ghConfig.user || null)
     .option("--gh-pass <password>", "GitHub pass", ghConfig.password || null)
     .option("--pr-url", "Add pull request URL to output", false)
@@ -185,6 +187,8 @@ if (require.main === module) {
   var tmplPath = path.join(__dirname, "templates/text.hbs");
   if (program.html) {
     tmplPath = path.join(__dirname, "templates/html.hbs");
+  } else if (program.csv) {
+    tmplPath = path.join(__dirname, "templates/csv.hbs");
   } else if (program.tmpl) {
     tmplPath = program.tmpl;
   }
