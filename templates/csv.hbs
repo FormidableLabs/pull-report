@@ -1,0 +1,5 @@
+repo,user,PR Number,Title,Last Updated,URL
+{{#each this~}}
+{{#each repos}}{{#each prs}}{{../name}},{{#if assignee}}{{assignee}}{{else}}[unassigned]{{/if}} / {{user}},{{number}},"{{title}}",{{updated_at}}{{#if url}},{{url}}{{/if}}
+{{/each}}{{/each}}
+{{/each~}}

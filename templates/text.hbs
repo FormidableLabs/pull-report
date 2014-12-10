@@ -2,7 +2,7 @@
 * {{org}}:
 {{~#each repos}}
   * {{name}}: ({{prs.length}}){{#each prs}}
-    * {{#if assignee}}{{assignee}}{{else}}[unassigned]{{/if}} / {{user}} - {{number}}: {{title}}{{#if url}}
+    * {{#if assignee}}{{assignee}}{{else}}[unassigned]{{/if}} / {{user}} - {{number}}: {{title}} - {{updated_at}} {{#if url}}
       {{url}}{{/if}}{{/each}}
 {{/each}}
 {{/each~}}
