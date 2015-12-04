@@ -39,6 +39,7 @@ function getPrs(opts, callback) {
   async.auto({
     repos: function (cb) {
       github.repos.getFromOrg({
+        type: opts.repoType,
         org: opts.org,
         per_page: 100
       }, cb);
@@ -163,6 +164,7 @@ if (require.main === module) {
     .option("--gh-user <username>", "GitHub user name", ghConfig.user || null)
     .option("--gh-pass <password>", "GitHub pass", ghConfig.password || null)
     .option("--pr-url", "Add pull request URL to output", false)
+    .option("--repo-type", "Choose type of repos to list (all|public|member)", 'all')
     .parse(process.argv);
 
   // --------------------------------------------------------------------------
@@ -253,6 +255,7 @@ if (require.main === module) {
   // Get PRs for each org in parallel, then display in order.
   async.map(program.org, function (org, cb) {
     getPrs({
+      repoType: program.repoType,
       org: org,
       users: program.user,
       state: program.state
