@@ -173,11 +173,9 @@ if (require.main === module) {
     throw new Error("Must specify 1+ organization names");
   }
   // If we have a token, no need for user/password
-  if (!program.ghToken) {
-    if (!(program.ghUser && program.ghPass)) {
+  if (!program.ghToken && !(program.ghUser && program.ghPass)) {
       throw new Error("Must specify GitHub user / pass in .gitconfig or " +
-		      "on the command line");
-    }
+	"on the command line");
   }
   if (["open", "closed"].indexOf(program.state) < 0) {
     throw new Error("Invalid issues state: " + program.state);
@@ -241,7 +239,7 @@ if (require.main === module) {
       username: program.ghUser,
       password: program.ghPass,
     });
-  }else{
+  } else {
     // OAuth2
     github.authenticate({
       type: "oauth",

@@ -32,7 +32,7 @@ $ pull-report --help
     --html                Display report as HTML
     --gh-user <username>  GitHub user name
     --gh-pass <password>  GitHub pass
-	--gh-token <token>    Github token
+    -gh-token <token>    Github token
     --pr-url              Add pull request URL to output
 ```
 
