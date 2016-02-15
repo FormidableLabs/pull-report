@@ -32,6 +32,7 @@ $ pull-report --help
     --html                Display report as HTML
     --gh-user <username>  GitHub user name
     --gh-pass <password>  GitHub pass
+    --gh-token <token>    Github token
     --pr-url              Add pull request URL to output
 ```
 
@@ -47,6 +48,7 @@ $ pull-report --help
 [github]
   user = MY_USERNAME
   password = MY_PASSWORD
+  token = MY_TOKEN
 ```
 
 You can alternately specify / override values on the command line:
@@ -57,6 +59,12 @@ $ pull-report \
   --gh-user MY_USERNAME \
   --gh-pass MY_PASSWORD
 ```
+
+If you user two factor auth (or do not want to specify a password on
+the command line or in your config file, you may instead specify a
+personal access token.  You should generate a token from your github
+user account with NO additional privileges and either include it in
+your .gitconfig file or specify it on the command line.
 
 ### GitHub Enterprise
 
