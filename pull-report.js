@@ -162,6 +162,7 @@ if (require.main === module) {
     .option("--html", "Display report as HTML", false)
     .option("--gh-user <username>", "GitHub user name", ghConfig.user || null)
     .option("--gh-pass <password>", "GitHub pass", ghConfig.password || null)
+    .option("--gh-token <token>", "GitHub token", ghConfig.token || null)
     .option("--pr-url", "Add pull request URL to output", false)
     .parse(process.argv);
 
@@ -171,9 +172,12 @@ if (require.main === module) {
   if (!program.org) {
     throw new Error("Must specify 1+ organization names");
   }
-  if (!(program.ghUser && program.ghPass)) {
-    throw new Error("Must specify GitHub user / pass in .gitconfig or " +
-      "on the command line");
+  // If we have a token, no need for user/password
+  if (!program.ghToken) {
+    if (!(program.ghUser && program.ghPass)) {
+      throw new Error("Must specify GitHub user / pass in .gitconfig or " +
+		      "on the command line");
+    }
   }
   if (["open", "closed"].indexOf(program.state) < 0) {
     throw new Error("Invalid issues state: " + program.state);
@@ -229,11 +233,21 @@ if (require.main === module) {
   }
 
   // Authenticate.
-  github.authenticate({
-    type: "basic",
-    username: program.ghUser,
-    password: program.ghPass,
-  });
+  // Only user basic auth if we don't have a token.
+  if (!program.ghToken) {
+    // user/pass
+    github.authenticate({
+      type: "basic",
+      username: program.ghUser,
+      password: program.ghPass,
+    });
+  }else{
+    // OAuth2
+    github.authenticate({
+      type: "oauth",
+      token: program.ghToken,
+    });
+  }
 
   // --------------------------------------------------------------------------
   // Set output function.
