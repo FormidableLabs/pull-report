@@ -174,8 +174,8 @@ if (require.main === module) {
   }
   // If we have a token, no need for user/password
   if (!program.ghToken && !(program.ghUser && program.ghPass)) {
-      throw new Error("Must specify GitHub user / pass in .gitconfig or " +
-	"on the command line");
+    throw new Error("Must specify GitHub user / pass in .gitconfig or " +
+      "on the command line");
   }
   if (["open", "closed"].indexOf(program.state) < 0) {
     throw new Error("Invalid issues state: " + program.state);
