@@ -24,12 +24,15 @@
     "handlebars": "~1.3.0"
   },
   "devDependencies": {
-    "jshint": "~2.1.9"
+    "eslint": "^1.10.3",
+    "eslint-config-defaults": "^9.0.0",
+    "eslint-plugin-filenames": "^0.2.0"
   },
   "bin": {
     "pull-report": "./pull-report.js"
   },
   "scripts": {
-    "test": "./node_modules/.bin/jshint -c .jshint.json *.js"
+    "lint": "eslint --color -c .eslintrc-server *.js",
+    "test": "npm run lint"
   }
 }

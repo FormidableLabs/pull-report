@@ -1,3 +1,5 @@
+[![Travis Status][trav_img]][trav_site]
+
 # Pull Request Reporter
 Create reports for open GitHub pull requests for organizations and users.
 
@@ -5,7 +7,7 @@ Create reports for open GitHub pull requests for organizations and users.
 
 You can install with NPM:
 
-```
+```sh
 $ npm install -g pull-report
 ```
 
@@ -14,7 +16,7 @@ $ npm install -g pull-report
 [GitHub organizations](https://github.com/blog/674-introducing-organizations)
 and optionally filter by a user list.
 
-```
+```sh
 $ pull-report --help
 
   Usage: pull-report.js [options]
@@ -44,7 +46,7 @@ $ pull-report --help
 
 `pull-report` reads your "~/.gitconfig" file looking for an entry like:
 
-```
+```yml
 [github]
   user = MY_USERNAME
   password = MY_PASSWORD
@@ -53,11 +55,15 @@ $ pull-report --help
 
 You can alternately specify / override values on the command line:
 
-```
+```sh
 $ pull-report \
   --org FormidableLabs \
   --gh-user MY_USERNAME \
   --gh-pass MY_PASSWORD
+
+$ pull-report \
+  --org FormidableLabs \
+  --gh-token MY_TOKEN
 ```
 
 If you user two factor auth (or do not want to specify a password on
@@ -65,6 +71,13 @@ the command line or in your config file, you may instead specify a
 personal access token.  You should generate a token from your github
 user account with NO additional privileges and either include it in
 your .gitconfig file or specify it on the command line.
+
+The order of authentication preferences are:
+
+1. `--gh-token`
+2. `--gh-user`/`--gh-pass` w/ .gitconfig:github:user`/`.gitconfig:github:password`
+3. `.gitconfig:github:token`
+4. `.gitconfig:github:user`, `.gitconfig:github:password`
 
 ### GitHub Enterprise
 
@@ -90,7 +103,7 @@ host name of your GitHub Enterprise host.
 
 Get all of the open pull requests for **one organization**:
 
-```
+```sh
 $ pull-report --org FormidableLabs
 * FormidableLabs:
   * work-for-us: (1)
@@ -108,7 +121,7 @@ $ pull-report --org FormidableLabs,ORG2
 
 Get PRs for multiple orgs, filtered to a **user list**:
 
-```
+```sh
 $ pull-report \
   --org FormidableLabs,ORG2 \
   --user ryan-roemer,USER2,USER3,USER4,USER5
@@ -116,7 +129,7 @@ $ pull-report \
 
 Get PRs for a **GitHub enterprise** organization:
 
-```
+```sh
 $ pull-report \
   --host custom-gh-enterprise.example.com \
   --org ORG1
@@ -146,6 +159,5 @@ But, any issues should be relatively easy to fix and enhance.
 
 * `pull-report` retrieves at most 100 pull requests for any repo.
 
-## Licenses
-Copyright 2013-2014 Formidable Labs, Inc.
-Released under the [MIT](./LICENSE.txt) License.
+[trav_img]: https://api.travis-ci.org/FormidableLabs/pull-report.svg
+[trav_site]: https://travis-ci.org/FormidableLabs/pull-report
