@@ -3,14 +3,14 @@
 
 \.DS_Store
 \.project
-
-*\.sublime-project
-*\.sublime-workspace
-
-node_modules
 bower_components
+node_modules
+npm-debug\.log*
+phantomjsdriver\.log
 
-# grunt-testem
-testem.*.json
-testem-*.tap
-libpeerconnection.log
+# Build
+dist
+*/dist
+build
+*/build
+coverage

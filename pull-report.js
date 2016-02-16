@@ -1,24 +1,25 @@
 #!/usr/bin/env node
+"use strict";
 
 /**
  * Pull request notifications.
  */
-var fs = require("fs"),
-  path = require("path"),
-  pkg = require("./package.json"),
+var fs = require("fs");
+var path = require("path");
+var pkg = require("./package.json");
 
-  _ = require("underscore"),
-  async = require("async"),
-  handlebars = require("handlebars"),
-  program = require("commander"),
-  iniparser = require("iniparser"),
-  GitHubApi = require("github"),
+var _ = require("underscore");
+var async = require("async");
+var handlebars = require("handlebars");
+var program = require("commander");
+var iniparser = require("iniparser");
+var GitHubApi = require("github");
 
-  HOME_PATH = process.env.HOME,
-  GIT_CONFIG_PATH = [HOME_PATH, ".gitconfig"].join("/"),
-  GIT_CONFIG = null,
+var HOME_PATH = process.env.HOME;
+var GIT_CONFIG_PATH = path.join(HOME_PATH, ".gitconfig");
+var GIT_CONFIG = null;
 
-  github;
+var github;
 
 // Try and get the .gitconfig.
 try {
@@ -30,17 +31,19 @@ try {
 /**
  * Get PRs for organization.
  *
- * @param   {object} opts       Options.
- * @param   {string} opts.org   Organization name
- * @param   {string} opts.users Users to filter (or `null`).
+ * @param {Object}    opts       Options.
+ * @param {String}    opts.org   Organization name
+ * @param {String}    opts.users Users to filter (or `null`)
+ * @param {Function}  callback   Calls back with `(err, data)`
+ * @returns {void}
  */
-function getPrs(opts, callback) {
+var getPrs = function (opts, callback) {
   // Actions.
   async.auto({
     repos: function (cb) {
       github.repos.getFromOrg({
         org: opts.org,
-        per_page: 100
+        per_page: 100 // eslint-disable-line camelcase
       }, cb);
     },
 
@@ -55,7 +58,7 @@ function getPrs(opts, callback) {
           user: opts.org,
           repo: repo.name,
           state: opts.state,
-          per_page: 100
+          per_page: 100 // eslint-disable-line camelcase
         }, function (err, prs) {
           if (prs && prs.length) {
             delete prs.meta;
@@ -72,9 +75,9 @@ function getPrs(opts, callback) {
   }, function (err, results) {
     if (err) { return callback(err); }
 
-    var repos = {},
-      entUrlRe = /api\/v[0-9]\/repos\//,
-      orgUrl = null;
+    var repos = {};
+    var entUrlRe = /api\/v[0-9]\/repos\//;
+    var orgUrl = null;
 
     // Iterate Repos.
     _.chain(results.prs)
@@ -119,8 +122,8 @@ function getPrs(opts, callback) {
           .filter(function (pr) {
             // Limit to assigned / requesting users.
             return !opts.users ||
-              opts.users.indexOf(pr.assignee) > -1 ||
-              opts.users.indexOf(pr.user) > -1;
+              _.contains(opts.users, pr.assignee) ||
+              _.contains(opts.users, pr.user);
           })
           .value();
 
@@ -137,15 +140,15 @@ function getPrs(opts, callback) {
       repos: repos
     });
   });
-}
+};
 
-function list(val) {
+var list = function (val) {
   return val.split(",");
-}
+};
 
 // Main.
 if (require.main === module) {
-  var ghConfig = (GIT_CONFIG && GIT_CONFIG.github) ? GIT_CONFIG.github : {};
+  var ghConfig = GIT_CONFIG && GIT_CONFIG.github ? GIT_CONFIG.github : {};
 
   // --------------------------------------------------------------------------
   // Configuration
@@ -160,11 +163,32 @@ if (require.main === module) {
     .option("-i, --insecure", "Allow unauthorized TLS (for proxies)", false)
     .option("-t, --tmpl <path>", "Handlebars template path")
     .option("--html", "Display report as HTML", false)
-    .option("--gh-user <username>", "GitHub user name", ghConfig.user || null)
-    .option("--gh-pass <password>", "GitHub pass", ghConfig.password || null)
-    .option("--gh-token <token>", "GitHub token", ghConfig.token || null)
+    .option("--gh-user <username>", "GitHub user name", null)
+    .option("--gh-pass <password>", "GitHub pass", null)
+    .option("--gh-token <token>", "GitHub token", null)
     .option("--pr-url", "Add pull request URL to output", false)
     .parse(process.argv);
+
+  // Add defaults from configuration, in order of precendence.
+  // 1. `--gh-token`
+  if (!program.ghToken && !(program.ghUser && program.ghPass)) {
+    // 2. `--gh-user`/`--gh-pass` w/ .gitconfig:github:user`/`
+    //    .gitconfig:github:password`
+    if (program.ghUser && !program.ghPass && ghConfig.password) {
+      program.ghPass = ghConfig.password;
+    } else if (!program.ghUser && ghConfig.user && program.ghPass) {
+      program.ghUser = ghConfig.user;
+
+    // 3. `.gitconfig:github:token`
+    } else if (ghConfig.token) {
+      program.ghToken = ghConfig.token;
+
+    // 4. `.gitconfig:github:user` `.gitconfig:github:password`
+    } else if (ghConfig.user && ghConfig.pass) {
+      program.ghUser = ghConfig.user;
+      program.ghPass = ghConfig.password;
+    }
+  }
 
   // --------------------------------------------------------------------------
   // Validation
@@ -198,7 +222,7 @@ if (require.main === module) {
   // Authentication
   // --------------------------------------------------------------------------
   // Set up github auth.
-  var github = new GitHubApi({
+  github = new GitHubApi({
     // required
     version: "3.0.0",
     // optional
@@ -221,8 +245,8 @@ if (require.main === module) {
     github.constants.host = program.host;
 
     // Patch routes with "/api/v3"
-    _.each(github[github.version].routes, function (group, groupName) {
-      _.each(group, function (route, routeName) {
+    _.each(github[github.version].routes, function (group/*, groupName*/) {
+      _.each(group, function (route/*, routeName*/) {
         if (route.url) {
           route.url = "/api/v3" + route.url;
         }
@@ -231,33 +255,20 @@ if (require.main === module) {
   }
 
   // Authenticate.
-  // Only user basic auth if we don't have a token.
-  if (!program.ghToken) {
-    // user/pass
+  if (program.ghToken) {
+    // Favor OAuth2
+    github.authenticate({
+      type: "oauth",
+      token: program.ghToken
+    });
+  } else {
+    // Otherwise basic auth with user/pass
     github.authenticate({
       type: "basic",
       username: program.ghUser,
-      password: program.ghPass,
-    });
-  } else {
-    // OAuth2
-    github.authenticate({
-      type: "oauth",
-      token: program.ghToken,
+      password: program.ghPass
     });
   }
-
-  // --------------------------------------------------------------------------
-  // Set output function.
-  // --------------------------------------------------------------------------
-  var write = console.log;
-
-  // --------------------------------------------------------------------------
-  // Set display function.
-  // --------------------------------------------------------------------------
-  var display = function (results) {
-    write(tmpl(results));
-  };
 
   // --------------------------------------------------------------------------
   // Iterate PRs for Organizations.
@@ -271,6 +282,8 @@ if (require.main === module) {
     }, cb);
   }, function (err, results) {
     if (err) { throw err; }
-    display(results);
+
+    // Write output.
+    process.stdout.write(tmpl(results));
   });
 }
