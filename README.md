@@ -37,6 +37,8 @@ $ pull-report --help
     --gh-token <token>    GitHub token
     --pr-url              Add pull request URL to output
     --repo-type <type>    Repo type (default: all|member|private)
+    -pull-requests        Display pull requests
+    -issues               Display issues
 ```
 
 ### Requirements
@@ -112,6 +114,12 @@ $ pull-report --org FormidableLabs
 
   * chai-jq: (1)
     * jane-user / joe-user - 8: fix DOC anchor links
+```
+
+Get all of the open issues for **one organization**:
+
+```sh
+$ pull-report --issues --org FormidableLabs
 ```
 
 Get open pull requests for **multiple organizations**:

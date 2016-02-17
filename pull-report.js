@@ -29,15 +29,17 @@ try {
 }
 
 /**
- * Get PRs for organization.
+ * Get Items for organization (PRs or Issues).
  *
- * @param {Object}    opts       Options.
- * @param {String}    opts.org   Organization name
- * @param {String}    opts.users Users to filter (or `null`)
- * @param {Function}  callback   Calls back with `(err, data)`
+ * @param {Object}    opts              Options.
+ * @param {String}    opts.org          Organization name
+ * @param {String}    opts.users        Users to filter (or `null`)
+ * @param {Bool}      opts.pullRequests Include pull requests
+ * @param {Bool}      opts.issues       Include issues
+ * @param {Function}  callback          Calls back with `(err, data)`
  * @returns {void}
  */
-var getPrs = function (opts, callback) {
+var getItems = function (opts, callback) {
   // Actions.
   async.auto({
     repos: function (cb) {
@@ -48,26 +50,61 @@ var getPrs = function (opts, callback) {
       }, cb);
     },
 
-    prs: ["repos", function (cb, results) {
+    items: ["repos", function (cb, results) {
       var repos = _.chain(results.repos)
         .map(function (repo) { return [repo.name, repo]; })
         .object()
         .value();
 
-      async.each(results.repos, function (repo, mapCb) {
-        github.pullRequests.getAll({
-          user: opts.org,
-          repo: repo.name,
-          state: opts.state,
-          per_page: 100 // eslint-disable-line camelcase
-        }, function (err, prs) {
-          if (prs && prs.length) {
-            delete prs.meta;
-            repos[repo.name].prs = prs;
+      // TODO: Try not to reference the `program` object here.
+
+      // Iterate repositories
+      async.each(results.repos, function (repo, repoCb) {
+        // Iterate type of item to request.
+        async.parallel([
+          // Type: Pull Requests
+          function (typeCb) {
+            if (!opts.pullRequests) { return typeCb(); }
+
+            github.pullRequests.getAll({
+              user: opts.org,
+              repo: repo.name,
+              state: opts.state,
+              per_page: 100 // eslint-disable-line camelcase
+            }, function (err, items) {
+              if (items && items.length) {
+                delete items.meta;
+                repos[repo.name].items = items;
+              }
+
+              return typeCb(err);
+            });
+          },
+
+          // Type: Issues
+          function (typeCb) {
+            if (!opts.issues) { return typeCb(); }
+
+            github.issues.repoIssues({
+              user: opts.org,
+              repo: repo.name,
+              state: opts.state,
+              per_page: 100 // eslint-disable-line camelcase
+            }, function (err, items) {
+              if (items && items.length) {
+                delete items.meta;
+                // TODO: Refactor reporting to handle `issues` like `prs`
+                // TODO: (OR) refactor `prs` above and `issues` here to something generic.
+                repos[repo.name].items = items;
+              }
+
+              return typeCb(err);
+            });
           }
 
-          return mapCb(err, prs);
-        });
+        ], repoCb);
+
+
       }, function (err) {
         return cb(err, repos);
       });
@@ -81,8 +118,8 @@ var getPrs = function (opts, callback) {
     var orgUrl = null;
 
     // Iterate Repos.
-    _.chain(results.prs)
-      .filter(function (repo) { return repo.prs && repo.prs.length; })
+    _.chain(results.items)
+      .filter(function (repo) { return repo.items && repo.items.length; })
       .sort(function (repo) { return repo.name; })
       .map(function (repo) {
         // Add in owner URL.
@@ -95,7 +132,7 @@ var getPrs = function (opts, callback) {
         };
 
         // Iterate PRs.
-        repoData.prs = _.chain(repo.prs)
+        repoData.items = _.chain(repo.items)
           .sort(function (pr) { return pr.number; })
           .map(function (pr) {
             var url = pr.url.replace(/pulls\/([0-9]+)$/, "pull/$1");
@@ -129,7 +166,7 @@ var getPrs = function (opts, callback) {
           .value();
 
         // Add in repo if 1+ filtered PRs.
-        if (repoData.prs.length > 0) {
+        if (repoData.items.length > 0) {
           repos[repo.name] = repoData;
         }
       });
@@ -167,8 +204,10 @@ if (require.main === module) {
     .option("--gh-user <username>", "GitHub user name", null)
     .option("--gh-pass <password>", "GitHub pass", null)
     .option("--gh-token <token>", "GitHub token", null)
-    .option("--pr-url", "Add pull request URL to output", false)
+    .option("--pr-url", "Add pull request or issue URL to output", false)
     .option("--repo-type <type>", "Repo type (default: all|member|private)", "all")
+    .option("--noprs", "Do not display pull requests", false)
+    .option("--issues", "Display issues", false)
     .parse(process.argv);
 
   // Add defaults from configuration, in order of precendence.
@@ -191,6 +230,11 @@ if (require.main === module) {
       program.ghPass = ghConfig.password;
     }
   }
+  if (program.noprs) {
+    program.pullRequests = false;
+  } else {
+    program.pullRequests = true;
+  }
 
   // --------------------------------------------------------------------------
   // Validation
@@ -208,6 +252,9 @@ if (require.main === module) {
   }
   if (!/^(all|public|member)$/i.test(program.repoType)) {
     throw new Error("Invalid repo type: " + program.repoType);
+  }
+  if (!program.pullRequests && !program.issues) {
+    throw new Error("Must request at least one type (pull-requests or issues");
   }
 
   // --------------------------------------------------------------------------
@@ -280,9 +327,11 @@ if (require.main === module) {
   // --------------------------------------------------------------------------
   // Get PRs for each org in parallel, then display in order.
   async.map(program.org, function (org, cb) {
-    getPrs({
+    getItems({
       repoType: program.repoType,
       org: org,
+      pullRequests: program.pullRequests,
+      issues: program.issues,
       users: program.user,
       state: program.state
     }, cb);

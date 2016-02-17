@@ -5,7 +5,7 @@
   {{~#each repos}}
     <h3>
       <a class="repo" href="{{url}}">{{name}}</a>
-      (<em><a href="{{url}}/pulls">{{prs.length}}</a></em>)
+      (<em><a href="{{url}}/pulls">{{items.length}}</a></em>)
     </h3>
     <table class="pure-table pure-table-bordered">
     <thead>
@@ -17,7 +17,7 @@
       </tr>
     </thead>
     <tbody>
-    {{~#each prs}}
+    {{~#each items}}
       <tr>
           <td>{{#if assignee~}}
             <a class="assignee" href="{{userUrl}}/{{assignee}}">{{assignee}}</a>
