@@ -168,7 +168,7 @@ if (require.main === module) {
     .option("--gh-pass <password>", "GitHub pass", null)
     .option("--gh-token <token>", "GitHub token", null)
     .option("--pr-url", "Add pull request URL to output", false)
-    .option("--repo-type", "Choose type of repos to list (all|public|member)", 'all')
+    .option("--repo-type <type>", "Repo type (default: all|member|private)", "all")
     .parse(process.argv);
 
   // Add defaults from configuration, in order of precendence.
@@ -203,8 +203,11 @@ if (require.main === module) {
     throw new Error("Must specify GitHub user / pass in .gitconfig or " +
       "on the command line");
   }
-  if (["open", "closed"].indexOf(program.state) < 0) {
-    throw new Error("Invalid issues state: " + program.state);
+  if (!/^(open|closed)$/i.test(program.state)) {
+    throw new Error("Invalid state: " + program.state);
+  }
+  if (!/^(all|public|member)$/i.test(program.repoType)) {
+    throw new Error("Invalid repo type: " + program.repoType);
   }
 
   // --------------------------------------------------------------------------

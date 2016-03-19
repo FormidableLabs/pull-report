@@ -19,7 +19,7 @@ and optionally filter by a user list.
 ```sh
 $ pull-report --help
 
-  Usage: pull-report.js [options]
+  Usage: pull-report [options]
 
   Options:
 
@@ -34,8 +34,9 @@ $ pull-report --help
     --html                Display report as HTML
     --gh-user <username>  GitHub user name
     --gh-pass <password>  GitHub pass
-    --gh-token <token>    Github token
+    --gh-token <token>    GitHub token
     --pr-url              Add pull request URL to output
+    --repo-type <type>    Repo type (default: all|member|private)
 ```
 
 ### Requirements

@@ -1,6 +1,10 @@
 History
 =======
 
+## Current
+
+* Add `--repo-type (all|member|private)` flag. ( *[@petems][]* )
+
 ## v0.1.0
 
 * Switch from jshint to eslint.
@@ -35,5 +39,6 @@ History
 
 * Initial release.
 
+[@petems]: https://github.com/petems
 [@jcvernaleo]: https://github.com/jcvernaleo
 [@ryan-roemer]: https://github.com/ryan-roemer
