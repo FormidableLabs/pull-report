@@ -1,6 +1,6 @@
 {
   "name": "pull-report",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "Report on open GitHub pull requests for organizations and users",
   "homepage": "https://github.com/FormidableLabs/pull-report",
   "author": "Ryan Roemer <ryan.roemer@formidablelabs.com>",
@@ -24,12 +24,15 @@
     "handlebars": "~1.3.0"
   },
   "devDependencies": {
-    "jshint": "~2.1.9"
+    "eslint": "^1.10.3",
+    "eslint-config-defaults": "^9.0.0",
+    "eslint-plugin-filenames": "^0.2.0"
   },
   "bin": {
     "pull-report": "./pull-report.js"
   },
   "scripts": {
-    "test": "./node_modules/.bin/jshint -c .jshint.json *.js"
+    "lint": "eslint --color -c .eslintrc-server *.js",
+    "test": "npm run lint"
   }
 }
