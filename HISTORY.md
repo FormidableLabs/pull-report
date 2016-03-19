@@ -1,7 +1,7 @@
 History
 =======
 
-## Current
+## 0.2.0
 
 * Add `--repo-type (all|member|private)` flag. ( *[@petems][]* )
 
