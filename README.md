@@ -77,7 +77,7 @@ your .gitconfig file or specify it on the command line.
 The order of authentication preferences are:
 
 1. `--gh-token`
-2. `--gh-user`/`--gh-pass` w/ .gitconfig:github:user`/`.gitconfig:github:password`
+2. `--gh-user`/`--gh-pass` w/ `.gitconfig:github:user`/`.gitconfig:github:password`
 3. `.gitconfig:github:token`
 4. `.gitconfig:github:user`, `.gitconfig:github:password`
 
