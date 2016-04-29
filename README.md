@@ -37,7 +37,7 @@ $ pull-report --help
     --gh-token <token>    GitHub token
     --pr-url              Add pull request URL to output
     --repo-type <type>    Repo type (default: all|member|private)
-    --pull-requests       Display pull requests (default: true)
+    --no-pull-requests    Do not display pull requests (default: false)
     --issues              Display issues (default: false)
 ```
 

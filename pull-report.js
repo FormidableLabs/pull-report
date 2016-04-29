@@ -206,7 +206,7 @@ if (require.main === module) {
     .option("--gh-token <token>", "GitHub token", null)
     .option("--pr-url", "Add pull request or issue URL to output", false)
     .option("--repo-type <type>", "Repo type (default: all|member|private)", "all")
-    .option("--noprs", "Do not display pull requests", false)
+    .option("--no-pull-requests", "Do not display pull requests", false)
     .option("--issues", "Display issues", false)
     .parse(process.argv);
 
@@ -229,11 +229,6 @@ if (require.main === module) {
       program.ghUser = ghConfig.user;
       program.ghPass = ghConfig.password;
     }
-  }
-  if (program.noprs) {
-    program.pullRequests = false;
-  } else {
-    program.pullRequests = true;
   }
 
   // --------------------------------------------------------------------------
