@@ -15,6 +15,7 @@ var program = require("commander");
 var iniparser = require("iniparser");
 var GitHubApi = require("github");
 
+var NOT_FOUND = -1;
 var HOME_PATH = process.env.HOME;
 var GIT_CONFIG_PATH = path.join(HOME_PATH, ".gitconfig");
 var GIT_CONFIG = null;
@@ -56,8 +57,6 @@ var getItems = function (opts, callback) {
         .object()
         .value();
 
-      // TODO: Try not to reference the `program` object here.
-
       // Iterate repositories
       async.each(results.repos, function (repo, repoCb) {
         // Iterate type of item to request.
@@ -93,8 +92,6 @@ var getItems = function (opts, callback) {
             }, function (err, items) {
               if (items && items.length) {
                 delete items.meta;
-                // TODO: Refactor reporting to handle `issues` like `prs`
-                // TODO: (OR) refactor `prs` above and `issues` here to something generic.
                 repos[repo.name].items = items;
               }
 
@@ -194,8 +191,9 @@ if (require.main === module) {
   // Parse command line arguments.
   program
     .version(pkg.version)
-    .option("-o, --org <orgs>", "List of 1+ organizations", list)
-    .option("-u, --user [users]", "List of 0+ users", list)
+
+    .option("-o, --org [orgs]", "Comma-separated list of 1+ organizations", list)
+    .option("-u, --user [users]", "Comma-separated list of 0+ users", list)
     .option("-H, --host <name>", "GitHub Enterprise API host URL")
     .option("-s, --state <state>", "State of issues (default: open)", "open")
     .option("-i, --insecure", "Allow unauthorized TLS (for proxies)", false)
@@ -206,8 +204,8 @@ if (require.main === module) {
     .option("--gh-token <token>", "GitHub token", null)
     .option("--pr-url", "Add pull request or issue URL to output", false)
     .option("--repo-type <type>", "Repo type (default: all|member|private)", "all")
-    .option("--no-pull-requests", "Do not display pull requests", false)
-    .option("--issues", "Display issues", false)
+    .option("--issue-type [types]",
+      "Comma-separated list of issue types (default: pull-request|issue)", list)
     .parse(process.argv);
 
   // Add defaults from configuration, in order of precendence.
@@ -234,7 +232,7 @@ if (require.main === module) {
   // --------------------------------------------------------------------------
   // Validation
   // --------------------------------------------------------------------------
-  if (!program.org) {
+  if (!(program.org || program.org.length)) {
     throw new Error("Must specify 1+ organization names");
   }
   // If we have a token, no need for user/password
@@ -248,9 +246,14 @@ if (require.main === module) {
   if (!/^(all|public|member)$/i.test(program.repoType)) {
     throw new Error("Invalid repo type: " + program.repoType);
   }
-  if (!program.pullRequests && !program.issues) {
-    throw new Error("Must request at least one type (pull-requests or issues");
+  if (!(program.issueType || program.org.issueType)) {
+    program.issueType = ["pull-request"]; // default
   }
+  program.issueType.forEach(function (type) {
+    if (["pull-request", "issue"].indexOf(type) === NOT_FOUND) {
+      throw new Error("Invalid issue type: " + type);
+    }
+  });
 
   // --------------------------------------------------------------------------
   // Template
@@ -325,8 +328,8 @@ if (require.main === module) {
     getItems({
       repoType: program.repoType,
       org: org,
-      pullRequests: program.pullRequests,
-      issues: program.issues,
+      pullRequests: program.issueType.indexOf("pull-request") > NOT_FOUND,
+      issues: program.issueType.indexOf("issue") > NOT_FOUND,
       users: program.user,
       state: program.state
     }, cb);

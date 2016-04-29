@@ -1,7 +1,7 @@
 [![Travis Status][trav_img]][trav_site]
 
-# Pull Request Reporter
-Create reports for open GitHub pull requests for organizations and users.
+# Pull Request / Issue Reporter
+Create reports for open GitHub pull requests / issues for organizations and users.
 
 ## Installation
 
@@ -12,7 +12,7 @@ $ npm install -g pull-report
 ```
 
 ## Usage
-`pull-report` can retrieve all open pull requests for 1+
+`pull-report` can retrieve all open pull requests / issues for 1+
 [GitHub organizations](https://github.com/blog/674-introducing-organizations)
 and optionally filter by a user list.
 
@@ -25,8 +25,8 @@ $ pull-report --help
 
     -h, --help            output usage information
     -V, --version         output the version number
-    -o, --org <orgs>      List of 1+ organizations
-    -u, --user [users]    List of 0+ users
+    -o, --org [orgs]      Comma-separated list of 1+ organizations
+    -u, --user [users]    Comma-separated list of 0+ users
     -H, --host <name>     GitHub Enterprise API host URL
     -s, --state <state>   State of issues (default: open)
     -i, --insecure        Allow unauthorized TLS (for proxies)
@@ -35,10 +35,9 @@ $ pull-report --help
     --gh-user <username>  GitHub user name
     --gh-pass <password>  GitHub pass
     --gh-token <token>    GitHub token
-    --pr-url              Add pull request URL to output
+    --pr-url              Add pull request or issue URL to output
     --repo-type <type>    Repo type (default: all|member|private)
-    --no-pull-requests    Do not display pull requests (default: false)
-    --issues              Display issues (default: false)
+    --issue-type [types]  Comma-separated list of issue types (default: pull-request|issue)
 ```
 
 ### Requirements
@@ -119,12 +118,16 @@ $ pull-report --org FormidableLabs
 Get all of the open issues for **one organization**:
 
 ```sh
-$ pull-report --issues --org FormidableLabs
+# Just the issues
+$ pull-report --issue-type issue --org FormidableLabs
+
+# Issues and PRs
+$ pull-report --issue-type issue,pull-request --org FormidableLabs
 ```
 
 Get open pull requests for **multiple organizations**:
 
-```
+```sh
 $ pull-report --org FormidableLabs,ORG2
 ```
 
@@ -166,7 +169,7 @@ Custom templates can be specified using the command option:
 There is a bit of inefficiency in the current underlying use of the GitHub API.
 But, any issues should be relatively easy to fix and enhance.
 
-* `pull-report` retrieves at most 100 pull requests for any repo.
+* `pull-report` retrieves at most 100 pull requests/issues for any repo.
 
 [trav_img]: https://api.travis-ci.org/FormidableLabs/pull-report.svg
 [trav_site]: https://travis-ci.org/FormidableLabs/pull-report
