@@ -1,7 +1,7 @@
 History
 =======
 
-## Current
+## 0.3.0
 
 * Add `--issue-type (pull-request|issue)` support. ( *[@jcvernaleo][]* )
 

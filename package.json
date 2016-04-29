@@ -1,6 +1,6 @@
 {
   "name": "pull-report",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Report on open GitHub pull requests for organizations and users",
   "homepage": "https://github.com/FormidableLabs/pull-report",
   "author": "Ryan Roemer <ryan.roemer@formidablelabs.com>",
