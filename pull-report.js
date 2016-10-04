@@ -16,7 +16,7 @@ var iniparser = require("iniparser");
 var GitHubApi = require("github");
 
 var NOT_FOUND = -1;
-var HOME_PATH = process.env.HOME;
+var HOME_PATH = process.env[/^win/.test(process.platform) ? "USERPROFILE" : "HOME"];
 var GIT_CONFIG_PATH = path.join(HOME_PATH, ".gitconfig");
 var GIT_CONFIG = null;
 
@@ -232,7 +232,7 @@ if (require.main === module) {
   // --------------------------------------------------------------------------
   // Validation
   // --------------------------------------------------------------------------
-  if (!(program.org || program.org.length)) {
+  if (!(program.org || []).length) {
     throw new Error("Must specify 1+ organization names");
   }
   // If we have a token, no need for user/password
