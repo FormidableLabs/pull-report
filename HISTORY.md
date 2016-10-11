@@ -1,6 +1,11 @@
 History
 =======
 
+## 0.3.1
+
+* Fix user home environment variable inference on windows.
+  [#14](https://github.com/FormidableLabs/pull-report/issues/14)
+
 ## 0.3.0
 
 * Add `--issue-type (pull-request|issue)` support. ( *[@jcvernaleo][]* )
