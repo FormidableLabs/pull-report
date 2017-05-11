@@ -145,13 +145,16 @@ var getItems = function (opts, callback) {
                 "https://github.com/");
             }
 
+            var labels = pr.labels.map(function(label) { return label.name; });
+
             return {
               userUrl: "https://" + (program.host || "github.com"),
               user: pr.user ? pr.user.login : null,
               assignee: pr.assignee ? pr.assignee.login : null,
               number: pr.number,
               title: pr.title,
-              url: program.prUrl || program.html ? url : null
+              url: program.prUrl || program.html ? url : null,
+              labels: labels.join(', '),
             };
           })
           .filter(function (pr) {
