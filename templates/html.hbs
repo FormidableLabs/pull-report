@@ -10,6 +10,7 @@
     <table class="pure-table pure-table-bordered">
     <thead>
       <tr>
+        <th>Labels</th>
         <th>Reviewer</th>
         <th>Coder</th>
         <th>Number</th>
@@ -19,6 +20,7 @@
     <tbody>
     {{~#each items}}
       <tr>
+          <td>{{labels}}</td>
           <td>{{#if assignee~}}
             <a class="assignee" href="{{userUrl}}/{{assignee}}">{{assignee}}</a>
           {{~else~}}
