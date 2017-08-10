@@ -16,18 +16,8 @@ var iniparser = require("iniparser");
 var GitHubApi = require("github");
 
 var NOT_FOUND = -1;
-var HOME_PATH = process.env[/^win/.test(process.platform) ? "USERPROFILE" : "HOME"];
-var GIT_CONFIG_PATH = path.join(HOME_PATH, ".gitconfig");
-var GIT_CONFIG = null;
 
 var github;
-
-// Try and get the .gitconfig.
-try {
-  GIT_CONFIG = iniparser.parseSync(GIT_CONFIG_PATH);
-} catch (err) {
-  // Passthrough.
-}
 
 /**
  * Get Items for organization (PRs or Issues).
@@ -37,6 +27,8 @@ try {
  * @param {String}    opts.users        Users to filter (or `null`)
  * @param {Bool}      opts.pullRequests Include pull requests
  * @param {Bool}      opts.issues       Include issues
+ * @param {String}    opts.host
+ * @param {Bool}      opts.includeUrl   Include url in results
  * @param {Function}  callback          Calls back with `(err, data)`
  * @returns {void}
  */
@@ -146,12 +138,12 @@ var getItems = function (opts, callback) {
             }
 
             return {
-              userUrl: "https://" + (program.host || "github.com"),
+              userUrl: "https://" + (opts.host || "github.com"),
               user: pr.user ? pr.user.login : null,
               assignee: pr.assignee ? pr.assignee.login : null,
               number: pr.number,
               title: pr.title,
-              url: program.prUrl || program.html ? url : null
+              url: opts.includeUrl ? url : null
             };
           })
           .filter(function (pr) {
@@ -181,54 +173,7 @@ var list = function (val) {
   return val.split(",");
 };
 
-// Main.
-if (require.main === module) {
-  var ghConfig = GIT_CONFIG && GIT_CONFIG.github ? GIT_CONFIG.github : {};
-
-  // --------------------------------------------------------------------------
-  // Configuration
-  // --------------------------------------------------------------------------
-  // Parse command line arguments.
-  program
-    .version(pkg.version)
-
-    .option("-o, --org [orgs]", "Comma-separated list of 1+ organizations", list)
-    .option("-u, --user [users]", "Comma-separated list of 0+ users", list)
-    .option("-H, --host <name>", "GitHub Enterprise API host URL")
-    .option("-s, --state <state>", "State of issues (default: open)", "open")
-    .option("-i, --insecure", "Allow unauthorized TLS (for proxies)", false)
-    .option("-t, --tmpl <path>", "Handlebars template path")
-    .option("--html", "Display report as HTML", false)
-    .option("--gh-user <username>", "GitHub user name", null)
-    .option("--gh-pass <password>", "GitHub pass", null)
-    .option("--gh-token <token>", "GitHub token", null)
-    .option("--pr-url", "Add pull request or issue URL to output", false)
-    .option("--repo-type <type>", "Repo type (default: all|member|private)", "all")
-    .option("--issue-type [types]",
-      "Comma-separated list of issue types (default: pull-request|issue)", list)
-    .parse(process.argv);
-
-  // Add defaults from configuration, in order of precendence.
-  // 1. `--gh-token`
-  if (!program.ghToken && !(program.ghUser && program.ghPass)) {
-    // 2. `--gh-user`/`--gh-pass` w/ .gitconfig:github:user`/`
-    //    .gitconfig:github:password`
-    if (program.ghUser && !program.ghPass && ghConfig.password) {
-      program.ghPass = ghConfig.password;
-    } else if (!program.ghUser && ghConfig.user && program.ghPass) {
-      program.ghUser = ghConfig.user;
-
-    // 3. `.gitconfig:github:token`
-    } else if (ghConfig.token) {
-      program.ghToken = ghConfig.token;
-
-    // 4. `.gitconfig:github:user` `.gitconfig:github:password`
-    } else if (ghConfig.user && ghConfig.pass) {
-      program.ghUser = ghConfig.user;
-      program.ghPass = ghConfig.password;
-    }
-  }
-
+function pullReport(program, cb) {
   // --------------------------------------------------------------------------
   // Validation
   // --------------------------------------------------------------------------
@@ -254,19 +199,6 @@ if (require.main === module) {
       throw new Error("Invalid issue type: " + type);
     }
   });
-
-  // --------------------------------------------------------------------------
-  // Template
-  // --------------------------------------------------------------------------
-  var tmplPath = path.join(__dirname, "templates/text.hbs");
-  if (program.html) {
-    tmplPath = path.join(__dirname, "templates/html.hbs");
-  } else if (program.tmpl) {
-    tmplPath = program.tmpl;
-  }
-
-  var tmplStr = fs.readFileSync(tmplPath).toString();
-  var tmpl = handlebars.compile(tmplStr);
 
   // --------------------------------------------------------------------------
   // Authentication
@@ -331,12 +263,91 @@ if (require.main === module) {
       pullRequests: program.issueType.indexOf("pull-request") > NOT_FOUND,
       issues: program.issueType.indexOf("issue") > NOT_FOUND,
       users: program.user,
-      state: program.state
+      state: program.state,
+      host: program.host,
+      includeURL: program.prUrl || program.html
     }, cb);
-  }, function (err, results) {
+  });
+}
+
+// Main.
+if (require.main === module) {
+  var HOME_PATH = process.env[/^win/.test(process.platform) ? "USERPROFILE" : "HOME"];
+  var GIT_CONFIG_PATH = path.join(HOME_PATH, ".gitconfig");
+  var GIT_CONFIG = null;
+
+  // Try and get the .gitconfig.
+  try {
+    GIT_CONFIG = iniparser.parseSync(GIT_CONFIG_PATH);
+  } catch (err) {
+    // Passthrough.
+  }
+
+  var ghConfig = GIT_CONFIG && GIT_CONFIG.github ? GIT_CONFIG.github : {};
+
+  // --------------------------------------------------------------------------
+  // Configuration
+  // --------------------------------------------------------------------------
+  // Parse command line arguments.
+  program
+    .version(pkg.version)
+
+    .option("-o, --org [orgs]", "Comma-separated list of 1+ organizations", list)
+    .option("-u, --user [users]", "Comma-separated list of 0+ users", list)
+    .option("-H, --host <name>", "GitHub Enterprise API host URL")
+    .option("-s, --state <state>", "State of issues (default: open)", "open")
+    .option("-i, --insecure", "Allow unauthorized TLS (for proxies)", false)
+    .option("-t, --tmpl <path>", "Handlebars template path")
+    .option("--html", "Display report as HTML", false)
+    .option("--gh-user <username>", "GitHub user name", null)
+    .option("--gh-pass <password>", "GitHub pass", null)
+    .option("--gh-token <token>", "GitHub token", null)
+    .option("--pr-url", "Add pull request or issue URL to output", false)
+    .option("--repo-type <type>", "Repo type (default: all|member|private)", "all")
+    .option("--issue-type [types]",
+      "Comma-separated list of issue types (default: pull-request|issue)", list)
+    .parse(process.argv);
+
+  // Add defaults from configuration, in order of precendence.
+  // 1. `--gh-token`
+  if (!program.ghToken && !(program.ghUser && program.ghPass)) {
+    // 2. `--gh-user`/`--gh-pass` w/ .gitconfig:github:user`/`
+    //    .gitconfig:github:password`
+    if (program.ghUser && !program.ghPass && ghConfig.password) {
+      program.ghPass = ghConfig.password;
+    } else if (!program.ghUser && ghConfig.user && program.ghPass) {
+      program.ghUser = ghConfig.user;
+
+    // 3. `.gitconfig:github:token`
+    } else if (ghConfig.token) {
+      program.ghToken = ghConfig.token;
+
+    // 4. `.gitconfig:github:user` `.gitconfig:github:password`
+    } else if (ghConfig.user && ghConfig.pass) {
+      program.ghUser = ghConfig.user;
+      program.ghPass = ghConfig.password;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Template
+  // --------------------------------------------------------------------------
+  var tmplPath = path.join(__dirname, "templates/text.hbs");
+  if (program.html) {
+    tmplPath = path.join(__dirname, "templates/html.hbs");
+  } else if (program.tmpl) {
+    tmplPath = program.tmpl;
+  }
+
+  var tmplStr = fs.readFileSync(tmplPath).toString();
+  var tmpl = handlebars.compile(tmplStr);
+
+  pullReport(program, function (err, results) {
     if (err) { throw err; }
 
     // Write output.
     process.stdout.write(tmpl(results));
   });
 }
+
+module.exports = pullReport;
