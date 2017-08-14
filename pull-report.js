@@ -27,7 +27,7 @@ var github;
  * @param {String}    opts.users        Users to filter (or `null`)
  * @param {Bool}      opts.pullRequests Include pull requests
  * @param {Bool}      opts.issues       Include issues
- * @param {String}    opts.host
+ * @param {String}    opts.host         GitHub Enterprise API host URL
  * @param {Bool}      opts.includeUrl   Include url in results
  * @param {Function}  callback          Calls back with `(err, data)`
  * @returns {void}
@@ -173,32 +173,36 @@ var list = function (val) {
   return val.split(",");
 };
 
-function pullReport(program, cb) {
+var validateArgs = function (opts) {
   // --------------------------------------------------------------------------
   // Validation
   // --------------------------------------------------------------------------
-  if (!(program.org || []).length) {
+  if (!(opts.org || []).length) {
     throw new Error("Must specify 1+ organization names");
   }
   // If we have a token, no need for user/password
-  if (!program.ghToken && !(program.ghUser && program.ghPass)) {
+  if (!opts.ghToken && !(opts.ghUser && opts.ghPass)) {
     throw new Error("Must specify GitHub user / pass in .gitconfig or " +
       "on the command line");
   }
-  if (!/^(open|closed)$/i.test(program.state)) {
-    throw new Error("Invalid state: " + program.state);
+  if (!/^(open|closed)$/i.test(opts.state)) {
+    throw new Error("Invalid state: " + opts.state);
   }
-  if (!/^(all|public|member)$/i.test(program.repoType)) {
-    throw new Error("Invalid repo type: " + program.repoType);
+  if (!/^(all|public|member)$/i.test(opts.repoType)) {
+    throw new Error("Invalid repo type: " + opts.repoType);
   }
-  if (!(program.issueType || program.org.issueType)) {
-    program.issueType = ["pull-request"]; // default
+  if (!(opts.issueType || opts.org.issueType)) {
+    opts.issueType = ["pull-request"]; // default
   }
-  program.issueType.forEach(function (type) {
+  opts.issueType.forEach(function (type) {
     if (["pull-request", "issue"].indexOf(type) === NOT_FOUND) {
       throw new Error("Invalid issue type: " + type);
     }
   });
+};
+
+var pullReport = function (opts, callback) {
+  validateArgs(opts);
 
   // --------------------------------------------------------------------------
   // Authentication
@@ -215,16 +219,16 @@ function pullReport(program, cb) {
   //
   // Note: URL forms are different:
   // https://ORG_HOST/api/v3/API_PATH/...
-  if (program.host && github.version === "3.0.0") {
+  if (opts.host && github.version === "3.0.0") {
     // Allow for proxy HTTPS mismatch. This is obviously an unsatisfactory
     // solution, but temporarily gets past:
     // `UNABLE_TO_VERIFY_LEAF_SIGNATURE` errors.
-    if (program.insecure) {
+    if (opts.insecure) {
       process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
     }
 
     // Patch host.
-    github.constants.host = program.host;
+    github.constants.host = opts.host;
 
     // Patch routes with "/api/v3"
     _.each(github[github.version].routes, function (group/*, groupName*/) {
@@ -237,18 +241,18 @@ function pullReport(program, cb) {
   }
 
   // Authenticate.
-  if (program.ghToken) {
+  if (opts.ghToken) {
     // Favor OAuth2
     github.authenticate({
       type: "oauth",
-      token: program.ghToken
+      token: opts.ghToken
     });
   } else {
     // Otherwise basic auth with user/pass
     github.authenticate({
       type: "basic",
-      username: program.ghUser,
-      password: program.ghPass
+      username: opts.ghUser,
+      password: opts.ghPass
     });
   }
 
@@ -256,19 +260,19 @@ function pullReport(program, cb) {
   // Iterate PRs for Organizations.
   // --------------------------------------------------------------------------
   // Get PRs for each org in parallel, then display in order.
-  async.map(program.org, function (org, cb) {
+  async.map(opts.org, function (org, cb) {
     getItems({
-      repoType: program.repoType,
+      repoType: opts.repoType,
       org: org,
-      pullRequests: program.issueType.indexOf("pull-request") > NOT_FOUND,
-      issues: program.issueType.indexOf("issue") > NOT_FOUND,
-      users: program.user,
-      state: program.state,
-      host: program.host,
-      includeURL: program.prUrl || program.html
+      pullRequests: opts.issueType.indexOf("pull-request") > NOT_FOUND,
+      issues: opts.issueType.indexOf("issue") > NOT_FOUND,
+      users: opts.user,
+      state: opts.state,
+      host: opts.host,
+      includeURL: opts.prUrl || opts.html
     }, cb);
-  });
-}
+  }, callback);
+};
 
 // Main.
 if (require.main === module) {
