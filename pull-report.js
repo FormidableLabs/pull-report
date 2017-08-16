@@ -16,18 +16,8 @@ var iniparser = require("iniparser");
 var GitHubApi = require("github");
 
 var NOT_FOUND = -1;
-var HOME_PATH = process.env[/^win/.test(process.platform) ? "USERPROFILE" : "HOME"];
-var GIT_CONFIG_PATH = path.join(HOME_PATH, ".gitconfig");
-var GIT_CONFIG = null;
 
 var github;
-
-// Try and get the .gitconfig.
-try {
-  GIT_CONFIG = iniparser.parseSync(GIT_CONFIG_PATH);
-} catch (err) {
-  // Passthrough.
-}
 
 /**
  * Get Items for organization (PRs or Issues).
@@ -37,6 +27,8 @@ try {
  * @param {String}    opts.users        Users to filter (or `null`)
  * @param {Bool}      opts.pullRequests Include pull requests
  * @param {Bool}      opts.issues       Include issues
+ * @param {String}    opts.host         GitHub Enterprise API host URL
+ * @param {Bool}      opts.includeUrl   Include url in results
  * @param {Function}  callback          Calls back with `(err, data)`
  * @returns {void}
  */
@@ -146,12 +138,12 @@ var getItems = function (opts, callback) {
             }
 
             return {
-              userUrl: "https://" + (program.host || "github.com"),
+              userUrl: "https://" + (opts.host || "github.com"),
               user: pr.user ? pr.user.login : null,
               assignee: pr.assignee ? pr.assignee.login : null,
               number: pr.number,
               title: pr.title,
-              url: program.prUrl || program.html ? url : null
+              url: opts.includeUrl ? url : null
             };
           })
           .filter(function (pr) {
@@ -181,8 +173,120 @@ var list = function (val) {
   return val.split(",");
 };
 
+var validateArgs = function (opts) {
+  // --------------------------------------------------------------------------
+  // Validation
+  // --------------------------------------------------------------------------
+  if (!(opts.org || []).length) {
+    throw new Error("Must specify 1+ organization names");
+  }
+  // If we have a token, no need for user/password
+  if (!opts.ghToken && !(opts.ghUser && opts.ghPass)) {
+    throw new Error("Must specify GitHub user / pass in .gitconfig or " +
+      "on the command line");
+  }
+  if (!/^(open|closed)$/i.test(opts.state)) {
+    throw new Error("Invalid state: " + opts.state);
+  }
+  if (!/^(all|public|member)$/i.test(opts.repoType)) {
+    throw new Error("Invalid repo type: " + opts.repoType);
+  }
+  if (!(opts.issueType || opts.org.issueType)) {
+    opts.issueType = ["pull-request"]; // default
+  }
+  opts.issueType.forEach(function (type) {
+    if (["pull-request", "issue"].indexOf(type) === NOT_FOUND) {
+      throw new Error("Invalid issue type: " + type);
+    }
+  });
+};
+
+var pullReport = function (opts, callback) {
+  validateArgs(opts);
+
+  // --------------------------------------------------------------------------
+  // Authentication
+  // --------------------------------------------------------------------------
+  // Set up github auth.
+  github = new GitHubApi({
+    // required
+    version: "3.0.0",
+    // optional
+    timeout: 5000
+  });
+
+  // Hack in GH enterprise API support.
+  //
+  // Note: URL forms are different:
+  // https://ORG_HOST/api/v3/API_PATH/...
+  if (opts.host && github.version === "3.0.0") {
+    // Allow for proxy HTTPS mismatch. This is obviously an unsatisfactory
+    // solution, but temporarily gets past:
+    // `UNABLE_TO_VERIFY_LEAF_SIGNATURE` errors.
+    if (opts.insecure) {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    }
+
+    // Patch host.
+    github.constants.host = opts.host;
+
+    // Patch routes with "/api/v3"
+    _.each(github[github.version].routes, function (group/*, groupName*/) {
+      _.each(group, function (route/*, routeName*/) {
+        if (route.url) {
+          route.url = "/api/v3" + route.url;
+        }
+      });
+    });
+  }
+
+  // Authenticate.
+  if (opts.ghToken) {
+    // Favor OAuth2
+    github.authenticate({
+      type: "oauth",
+      token: opts.ghToken
+    });
+  } else {
+    // Otherwise basic auth with user/pass
+    github.authenticate({
+      type: "basic",
+      username: opts.ghUser,
+      password: opts.ghPass
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // Iterate PRs for Organizations.
+  // --------------------------------------------------------------------------
+  // Get PRs for each org in parallel, then display in order.
+  async.map(opts.org, function (org, cb) {
+    getItems({
+      repoType: opts.repoType,
+      org: org,
+      pullRequests: opts.issueType.indexOf("pull-request") > NOT_FOUND,
+      issues: opts.issueType.indexOf("issue") > NOT_FOUND,
+      users: opts.user,
+      state: opts.state,
+      host: opts.host,
+      includeURL: opts.prUrl || opts.html
+    }, cb);
+  }, callback);
+};
+
 // Main.
 if (require.main === module) {
+  var HOME_PATH = process.env[/^win/.test(process.platform) ? "USERPROFILE" : "HOME"];
+  var GIT_CONFIG_PATH = path.join(HOME_PATH, ".gitconfig");
+  var GIT_CONFIG = null;
+
+  // Try and get the .gitconfig.
+  try {
+    GIT_CONFIG = iniparser.parseSync(GIT_CONFIG_PATH);
+  } catch (err) {
+    // Passthrough.
+  }
+
   var ghConfig = GIT_CONFIG && GIT_CONFIG.github ? GIT_CONFIG.github : {};
 
   // --------------------------------------------------------------------------
@@ -230,32 +334,6 @@ if (require.main === module) {
   }
 
   // --------------------------------------------------------------------------
-  // Validation
-  // --------------------------------------------------------------------------
-  if (!(program.org || []).length) {
-    throw new Error("Must specify 1+ organization names");
-  }
-  // If we have a token, no need for user/password
-  if (!program.ghToken && !(program.ghUser && program.ghPass)) {
-    throw new Error("Must specify GitHub user / pass in .gitconfig or " +
-      "on the command line");
-  }
-  if (!/^(open|closed)$/i.test(program.state)) {
-    throw new Error("Invalid state: " + program.state);
-  }
-  if (!/^(all|public|member)$/i.test(program.repoType)) {
-    throw new Error("Invalid repo type: " + program.repoType);
-  }
-  if (!(program.issueType || program.org.issueType)) {
-    program.issueType = ["pull-request"]; // default
-  }
-  program.issueType.forEach(function (type) {
-    if (["pull-request", "issue"].indexOf(type) === NOT_FOUND) {
-      throw new Error("Invalid issue type: " + type);
-    }
-  });
-
-  // --------------------------------------------------------------------------
   // Template
   // --------------------------------------------------------------------------
   var tmplPath = path.join(__dirname, "templates/text.hbs");
@@ -268,75 +346,12 @@ if (require.main === module) {
   var tmplStr = fs.readFileSync(tmplPath).toString();
   var tmpl = handlebars.compile(tmplStr);
 
-  // --------------------------------------------------------------------------
-  // Authentication
-  // --------------------------------------------------------------------------
-  // Set up github auth.
-  github = new GitHubApi({
-    // required
-    version: "3.0.0",
-    // optional
-    timeout: 5000
-  });
-
-  // Hack in GH enterprise API support.
-  //
-  // Note: URL forms are different:
-  // https://ORG_HOST/api/v3/API_PATH/...
-  if (program.host && github.version === "3.0.0") {
-    // Allow for proxy HTTPS mismatch. This is obviously an unsatisfactory
-    // solution, but temporarily gets past:
-    // `UNABLE_TO_VERIFY_LEAF_SIGNATURE` errors.
-    if (program.insecure) {
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-    }
-
-    // Patch host.
-    github.constants.host = program.host;
-
-    // Patch routes with "/api/v3"
-    _.each(github[github.version].routes, function (group/*, groupName*/) {
-      _.each(group, function (route/*, routeName*/) {
-        if (route.url) {
-          route.url = "/api/v3" + route.url;
-        }
-      });
-    });
-  }
-
-  // Authenticate.
-  if (program.ghToken) {
-    // Favor OAuth2
-    github.authenticate({
-      type: "oauth",
-      token: program.ghToken
-    });
-  } else {
-    // Otherwise basic auth with user/pass
-    github.authenticate({
-      type: "basic",
-      username: program.ghUser,
-      password: program.ghPass
-    });
-  }
-
-  // --------------------------------------------------------------------------
-  // Iterate PRs for Organizations.
-  // --------------------------------------------------------------------------
-  // Get PRs for each org in parallel, then display in order.
-  async.map(program.org, function (org, cb) {
-    getItems({
-      repoType: program.repoType,
-      org: org,
-      pullRequests: program.issueType.indexOf("pull-request") > NOT_FOUND,
-      issues: program.issueType.indexOf("issue") > NOT_FOUND,
-      users: program.user,
-      state: program.state
-    }, cb);
-  }, function (err, results) {
+  pullReport(program, function (err, results) {
     if (err) { throw err; }
 
     // Write output.
     process.stdout.write(tmpl(results));
   });
 }
+
+module.exports = pullReport;
