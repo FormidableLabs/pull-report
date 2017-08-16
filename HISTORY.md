@@ -1,6 +1,11 @@
 History
 =======
 
+## 0.4.0
+
+* Expose `pullReport` as module for external script imports. ( *[@NotWoods][]* )
+  [#17](https://github.com/FormidableLabs/pull-report/issues/17)
+
 ## 0.3.1
 
 * Fix user home environment variable inference on windows.
@@ -50,4 +55,5 @@ History
 
 [@petems]: https://github.com/petems
 [@jcvernaleo]: https://github.com/jcvernaleo
+[@NotWoods]: https://github.com/NotWoods
 [@ryan-roemer]: https://github.com/ryan-roemer
