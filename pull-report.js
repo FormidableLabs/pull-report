@@ -269,7 +269,7 @@ var pullReport = function (opts, callback) {
       users: opts.user,
       state: opts.state,
       host: opts.host,
-      includeURL: opts.prUrl || opts.html
+      includeUrl: opts.prUrl || opts.html
     }, cb);
   }, callback);
 };
@@ -307,7 +307,7 @@ if (require.main === module) {
     .option("--gh-pass <password>", "GitHub pass", null)
     .option("--gh-token <token>", "GitHub token", null)
     .option("--pr-url", "Add pull request or issue URL to output", false)
-    .option("--repo-type <type>", "Repo type (default: all|member|private)", "all")
+    .option("--repo-type <type>", "Repo type (default: all|member|public)", "all")
     .option("--issue-type [types]",
       "Comma-separated list of issue types (default: pull-request|issue)", list)
     .parse(process.argv);
