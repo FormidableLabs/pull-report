@@ -16,7 +16,7 @@
     "pull request"
   ],
   "dependencies": {
-    "async": "~0.2.9",
+    "async": "^2.6.1",
     "commander": "^2.9.0",
     "github": "~0.1.10",
     "handlebars": "^4.0.11",

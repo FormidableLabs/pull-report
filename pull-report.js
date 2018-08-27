@@ -43,7 +43,7 @@ var getItems = function (opts, callback) {
       }, cb);
     },
 
-    items: ["repos", function (cb, results) {
+    items: ["repos", function (results, cb) {
       var repos = _.chain(results.repos)
         .map(function (repo) { return [repo.name, repo]; })
         .object()
