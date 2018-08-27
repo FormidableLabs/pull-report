@@ -36,7 +36,7 @@ var getItems = function (opts, callback) {
   // Actions.
   async.auto({
     repos: function (cb) {
-      github.repos.getFromOrg({
+      github.repos.getForOrg({
         type: opts.repoType,
         org: opts.org,
         per_page: 100 // eslint-disable-line camelcase
