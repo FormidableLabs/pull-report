@@ -1,6 +1,14 @@
 History
 =======
 
+## Unreleased
+
+* Fix `--repo-type` documentation.
+* Fix bug in `--pr-url` causing it not to work.
+* Update travis config to modern nodes.
+* Switch to yarn.
+* Upgrade various dependencies.
+
 ## 0.4.0
 
 * Expose `pullReport` as module for external script imports. ( *[@NotWoods][]* )
