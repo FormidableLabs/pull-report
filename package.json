@@ -20,7 +20,7 @@
     "commander": "^2.9.0",
     "github": "~0.1.10",
     "handlebars": "^4.0.11",
-    "iniparser": "~1.0.5",
+    "iniparser": "^1.0.5",
     "underscore": "^1.9.1"
   },
   "devDependencies": {
