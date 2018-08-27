@@ -1,12 +1,19 @@
 language: node_js
 
 node_js:
-  - "0.10"
-  - "0.12"
-  - "4"
   - "6"
   - "8"
+  - "10"
 
 branches:
   only:
     - master
+
+cache: yarn
+
+install:
+  - yarn install --frozen-lockfile
+
+script:
+  - yarn --version
+  - yarn run test

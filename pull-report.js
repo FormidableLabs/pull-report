@@ -36,14 +36,14 @@ var getItems = function (opts, callback) {
   // Actions.
   async.auto({
     repos: function (cb) {
-      github.repos.getFromOrg({
+      github.repos.getForOrg({
         type: opts.repoType,
         org: opts.org,
         per_page: 100 // eslint-disable-line camelcase
       }, cb);
     },
 
-    items: ["repos", function (cb, results) {
+    items: ["repos", function (results, cb) {
       var repos = _.chain(results.repos)
         .map(function (repo) { return [repo.name, repo]; })
         .object()
@@ -64,7 +64,6 @@ var getItems = function (opts, callback) {
               per_page: 100 // eslint-disable-line camelcase
             }, function (err, items) {
               if (items && items.length) {
-                delete items.meta;
                 repos[repo.name].items = items;
               }
 
@@ -83,7 +82,6 @@ var getItems = function (opts, callback) {
               per_page: 100 // eslint-disable-line camelcase
             }, function (err, items) {
               if (items && items.length) {
-                delete items.meta;
                 repos[repo.name].items = items;
               }
 
@@ -269,7 +267,7 @@ var pullReport = function (opts, callback) {
       users: opts.user,
       state: opts.state,
       host: opts.host,
-      includeURL: opts.prUrl || opts.html
+      includeUrl: opts.prUrl || opts.html
     }, cb);
   }, callback);
 };
@@ -307,7 +305,7 @@ if (require.main === module) {
     .option("--gh-pass <password>", "GitHub pass", null)
     .option("--gh-token <token>", "GitHub token", null)
     .option("--pr-url", "Add pull request or issue URL to output", false)
-    .option("--repo-type <type>", "Repo type (default: all|member|private)", "all")
+    .option("--repo-type <type>", "Repo type (default: all|member|public)", "all")
     .option("--issue-type [types]",
       "Comma-separated list of issue types (default: pull-request|issue)", list)
     .parse(process.argv);

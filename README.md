@@ -21,9 +21,9 @@ $ pull-report --help
 
   Usage: pull-report [options]
 
+
   Options:
 
-    -h, --help            output usage information
     -V, --version         output the version number
     -o, --org [orgs]      Comma-separated list of 1+ organizations
     -u, --user [users]    Comma-separated list of 0+ users
@@ -36,8 +36,9 @@ $ pull-report --help
     --gh-pass <password>  GitHub pass
     --gh-token <token>    GitHub token
     --pr-url              Add pull request or issue URL to output
-    --repo-type <type>    Repo type (default: all|member|private)
+    --repo-type <type>    Repo type (default: all|member|public)
     --issue-type [types]  Comma-separated list of issue types (default: pull-request|issue)
+    -h, --help            output usage information
 ```
 
 ### Requirements

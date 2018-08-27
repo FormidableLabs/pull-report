@@ -1,6 +1,6 @@
 {{#each this~}}
 * {{org}}:
-{{~#each repos}}
+{{#each repos}}
   * {{name}}: ({{items.length}}){{#each items}}
     * {{#if assignee}}{{assignee}}{{else}}[unassigned]{{/if}} / {{user}} - {{number}}: {{title}}{{#if url}}
       {{url}}{{/if}}{{/each}}
