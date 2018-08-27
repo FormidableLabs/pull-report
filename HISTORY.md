@@ -1,7 +1,7 @@
 History
 =======
 
-## Unreleased
+## 0.4.1
 
 * Fix `--repo-type` documentation.
 * Fix bug in `--pr-url` causing it not to work.
