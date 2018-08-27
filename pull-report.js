@@ -64,7 +64,6 @@ var getItems = function (opts, callback) {
               per_page: 100 // eslint-disable-line camelcase
             }, function (err, items) {
               if (items && items.length) {
-                delete items.meta;
                 repos[repo.name].items = items;
               }
 
@@ -83,7 +82,6 @@ var getItems = function (opts, callback) {
               per_page: 100 // eslint-disable-line camelcase
             }, function (err, items) {
               if (items && items.length) {
-                delete items.meta;
                 repos[repo.name].items = items;
               }
 
