@@ -3,6 +3,10 @@
 # Pull Request / Issue Reporter
 Create reports for open GitHub pull requests / issues for organizations and users.
 
+### Maintenance Status: Stable
+
+Formidable is not planning to develop any new features for this project. We are still responding to bug reports and security concerns. We are still welcoming PRs for this project, but PRs that include new features should be small and easy to integrate and should not include breaking changes.
+
 ## Installation
 
 You can install with NPM:
