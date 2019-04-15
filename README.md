@@ -1,7 +1,10 @@
 [![Travis Status][trav_img]][trav_site]
+[![Maintenance Status][maintenance-image]](#maintenance-status)
+
 
 # Pull Request / Issue Reporter
 Create reports for open GitHub pull requests / issues for organizations and users.
+
 
 ## Installation
 
@@ -172,5 +175,12 @@ But, any issues should be relatively easy to fix and enhance.
 
 * `pull-report` retrieves at most 100 pull requests/issues for any repo.
 
+
+### Maintenance Status
+
+**Stable:** Formidable is not planning to develop any new features for this project. We are still responding to bug reports and security concerns. We are still welcoming PRs for this project, but PRs that include new features should be small and easy to integrate and should not include breaking changes.
+
+
 [trav_img]: https://api.travis-ci.org/FormidableLabs/pull-report.svg
 [trav_site]: https://travis-ci.org/FormidableLabs/pull-report
+[maintenance-image]: https://img.shields.io/badge/maintenance-stable-blue.svg
